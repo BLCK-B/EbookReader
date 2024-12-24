@@ -24,5 +24,9 @@
 				<data android:scheme="content" />
 			</intent-filter>
 		</activity>
+		<activity
+			android:name=".OutlineActivity"
+			android:exported="true">
+		</activity>
 	</application>
 </manifest>

@@ -9,6 +9,4 @@
 	<item android:id="@+id/action_layout_12pt" android:title="12pt" />
 	<item android:id="@+id/action_layout_13pt" android:title="13pt" />
 	<item android:id="@+id/action_layout_14pt" android:title="14pt" />
-	<item android:id="@+id/action_layout_15pt" android:title="15pt" />
-	<item android:id="@+id/action_layout_16pt" android:title="16pt" />
 </menu>
