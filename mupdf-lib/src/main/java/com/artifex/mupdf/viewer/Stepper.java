@@ -1,7 +1,6 @@
 package com.artifex.mupdf.viewer;
 
 import android.annotation.SuppressLint;
-import android.os.Build;
 import android.view.View;
 
 public class Stepper {
@@ -19,18 +18,10 @@ public class Stepper {
     public void prod() {
         if (!mPending) {
             mPending = true;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                mPoster.postOnAnimation(() -> {
-                    mPending = false;
-                    mTask.run();
-                });
-            } else {
-                mPoster.post(() -> {
-                    mPending = false;
-                    mTask.run();
-                });
-
-            }
+            mPoster.postOnAnimation(() -> {
+                mPending = false;
+                mTask.run();
+            });
         }
     }
 }

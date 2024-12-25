@@ -71,6 +71,9 @@ public abstract class SearchTask {
                 int index = startIndex;
 
                 while (0 <= index && index < mCore.countPages() && !isCancelled()) {
+
+                    testingDelay();
+
                     publishProgress(index);
                     Quad searchHits[][] = mCore.searchPage(index, text);
 
@@ -119,5 +122,13 @@ public abstract class SearchTask {
         };
 
         mSearchTask.execute();
+    }
+
+    private void testingDelay() {
+        try {
+            Thread.sleep(1500); // 100 milliseconds delay (adjust as needed)
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
