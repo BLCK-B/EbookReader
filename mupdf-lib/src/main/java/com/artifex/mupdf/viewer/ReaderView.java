@@ -152,9 +152,7 @@ public class ReaderView
         int advance = (int) (screenHeight * 0.9 + 0.5);
         int leftOver = max % advance;
         int steps = max / advance;
-        if (leftOver == 0) {
-            // We'll make it exactly. No adjustment
-        } else if ((float) leftOver / steps <= screenHeight * 0.05) {
+        if ((float) leftOver / steps <= screenHeight * 0.05) {
             // We can adjust up by less than 5% to make it exact.
             advance += (int) ((float) leftOver / steps + 0.5);
         } else {
@@ -464,8 +462,8 @@ public class ReaderView
         if (!tapDisabled)
             onDocMotion();
         if (!mScaling) {
-            mXScroll -= distanceX;
-            mYScroll -= distanceY;
+            mXScroll -= (int) distanceX;
+            mYScroll -= (int) distanceY;
             requestLayout();
         }
         return true;
@@ -626,7 +624,7 @@ public class ReaderView
 
             // Remove not needed children and hold them for reuse
             int numChildren = mChildViews.size();
-            int childIndices[] = new int[numChildren];
+            int[] childIndices = new int[numChildren];
             for (int i = 0; i < numChildren; i++)
                 childIndices[i] = mChildViews.keyAt(i);
 
@@ -838,19 +836,11 @@ public class ReaderView
         // onSettle and onUnsettle are posted so that the calls
         // won't be executed until after the system has performed
         // layout.
-        post(new Runnable() {
-            public void run() {
-                onSettle(v);
-            }
-        });
+        post(() -> onSettle(v));
     }
 
     private void postUnsettle(final View v) {
-        post(new Runnable() {
-            public void run() {
-                onUnsettle(v);
-            }
-        });
+        post(() -> onUnsettle(v));
     }
 
     private void slideViewOntoScreen(View v) {
@@ -877,20 +867,14 @@ public class ReaderView
     }
 
     private static boolean withinBoundsInDirectionOfTravel(Rect bounds, float vx, float vy) {
-        switch (directionOfTravel(vx, vy)) {
-            case MOVING_DIAGONALLY:
-                return bounds.contains(0, 0);
-            case MOVING_LEFT:
-                return bounds.left <= 0;
-            case MOVING_RIGHT:
-                return bounds.right >= 0;
-            case MOVING_UP:
-                return bounds.top <= 0;
-            case MOVING_DOWN:
-                return bounds.bottom >= 0;
-            default:
-                throw new NoSuchElementException();
-        }
+        return switch (directionOfTravel(vx, vy)) {
+            case MOVING_DIAGONALLY -> bounds.contains(0, 0);
+            case MOVING_LEFT -> bounds.left <= 0;
+            case MOVING_RIGHT -> bounds.right >= 0;
+            case MOVING_UP -> bounds.top <= 0;
+            case MOVING_DOWN -> bounds.bottom >= 0;
+            default -> throw new NoSuchElementException();
+        };
     }
 
     protected void onTapMainDocArea() {

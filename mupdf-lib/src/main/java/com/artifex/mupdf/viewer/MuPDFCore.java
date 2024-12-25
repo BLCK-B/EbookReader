@@ -44,7 +44,7 @@ public class MuPDFCore {
         currentPage = -1;
     }
 
-    public MuPDFCore(byte buffer[], String magic) {
+    public MuPDFCore(byte[] buffer, String magic) {
         this(Document.openDocument(buffer, magic));
     }
 
@@ -148,7 +148,7 @@ public class MuPDFCore {
         if (displayList == null || page == null)
             return;
 
-        float zoom = resolution / 72;
+        float zoom = (float) resolution / 72;
         Matrix ctm = new Matrix(zoom, zoom);
         RectI bbox = new RectI(page.getBounds().transform(ctm));
         float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
@@ -197,7 +197,7 @@ public class MuPDFCore {
         return outline != null;
     }
 
-    private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], String indent) {
+    private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline[] list, String indent) {
         for (Outline node : list) {
             if (node.title != null) {
                 int page = doc.pageNumberFromLocation(doc.resolveLink(node));
@@ -209,7 +209,7 @@ public class MuPDFCore {
     }
 
     public synchronized ArrayList<OutlineActivity.Item> getOutline() {
-        ArrayList<OutlineActivity.Item> result = new ArrayList<OutlineActivity.Item>();
+        ArrayList<OutlineActivity.Item> result = new ArrayList<>();
         flattenOutlineNodes(result, outline, "");
         return result;
     }

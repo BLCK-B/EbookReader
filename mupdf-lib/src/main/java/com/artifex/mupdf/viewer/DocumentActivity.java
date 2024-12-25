@@ -304,7 +304,7 @@ public class DocumentActivity extends Activity {
     }
 
     public void relayoutDocument() {
-        //  side effects.. necessary to change font size
+        // side effects.. necessary to change font size
         int loc = core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM);
 
         mFlatOutline = null;
@@ -433,12 +433,10 @@ public class DocumentActivity extends Activity {
         });
 
         //React to Done button on keyboard
-        mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE)
-                    search(1);
-                return false;
-            }
+        mSearchText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE)
+                search(1);
+            return false;
         });
 
         mSearchText.setOnKeyListener((v, keyCode, event) -> {
@@ -578,9 +576,8 @@ public class DocumentActivity extends Activity {
                 mSearchText.requestFocus();
                 showKeyboard();
             }
-
             Animation anim = new TranslateAnimation(0, 0, -mTopBarSwitcher.getHeight(), 0);
-            anim.setDuration(200);
+            anim.setDuration(50);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
                     mTopBarSwitcher.setVisibility(View.VISIBLE);
@@ -595,7 +592,7 @@ public class DocumentActivity extends Activity {
             mTopBarSwitcher.startAnimation(anim);
 
             anim = new TranslateAnimation(0, 0, mPageSlider.getHeight(), 0);
-            anim.setDuration(200);
+            anim.setDuration(50);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
                     mPageSlider.setVisibility(View.VISIBLE);
@@ -618,7 +615,7 @@ public class DocumentActivity extends Activity {
             hideKeyboard();
 
             Animation anim = new TranslateAnimation(0, 0, 0, -mTopBarSwitcher.getHeight());
-            anim.setDuration(200);
+            anim.setDuration(50);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
                 }
@@ -633,7 +630,7 @@ public class DocumentActivity extends Activity {
             mTopBarSwitcher.startAnimation(anim);
 
             anim = new TranslateAnimation(0, 0, 0, mPageSlider.getHeight());
-            anim.setDuration(200);
+            anim.setDuration(50);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
                     mPageNumberView.setVisibility(View.INVISIBLE);
