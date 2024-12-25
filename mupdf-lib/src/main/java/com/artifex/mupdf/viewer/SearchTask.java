@@ -1,134 +1,58 @@
 package com.artifex.mupdf.viewer;
 
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.AsyncTask;
-import android.os.Handler;
 
 import com.artifex.mupdf.fitz.Quad;
 
-class ProgressDialogX extends ProgressDialog {
-    public ProgressDialogX(Context context) {
-        super(context);
-    }
-
-    private boolean mCancelled = false;
-
-    public boolean isCancelled() {
-        return mCancelled;
-    }
-
-    @Override
-    public void cancel() {
-        mCancelled = true;
-        super.cancel();
-    }
-}
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class SearchTask {
-    private static final int SEARCH_PROGRESS_DELAY = 200;
     private final Context mContext;
     private final MuPDFCore mCore;
-    private final Handler mHandler;
     private final AlertDialog.Builder mAlertBuilder;
-    private AsyncTask<Void, Integer, SearchTaskResult> mSearchTask;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public SearchTask(Context context, MuPDFCore core) {
         mContext = context;
         mCore = core;
-        mHandler = new Handler();
         mAlertBuilder = new AlertDialog.Builder(context);
     }
 
     protected abstract void onTextFound(SearchTaskResult result);
 
-    public void stop() {
-        if (mSearchTask != null) {
-            mSearchTask.cancel(true);
-            mSearchTask = null;
-        }
-    }
-
-    public void go(final String text, int direction, int displayPage, int searchPage) {
+    public void search(final String text, int direction, int displayPage, int searchPage) {
         if (mCore == null)
             return;
-        stop();
-
         final int increment = direction;
         final int startIndex = searchPage == -1 ? displayPage : searchPage + increment;
-
-        final ProgressDialogX progressDialog = new ProgressDialogX(mContext);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setTitle(mContext.getString(R.string.searching_));
-        progressDialog.setOnCancelListener(dialog -> stop());
-        progressDialog.setMax(mCore.countPages());
-
-        mSearchTask = new AsyncTask<Void, Integer, SearchTaskResult>() {
-            @Override
-            protected SearchTaskResult doInBackground(Void... params) {
-                int index = startIndex;
-
-                while (0 <= index && index < mCore.countPages() && !isCancelled()) {
-
-                    testingDelay();
-
-                    publishProgress(index);
-                    Quad searchHits[][] = mCore.searchPage(index, text);
-
-                    if (searchHits != null && searchHits.length > 0)
-                        return new SearchTaskResult(text, index, searchHits);
-
-                    index += increment;
+        executor.execute(() -> {
+            int index = startIndex;
+            SearchTaskResult result = null;
+            while (0 <= index && index < mCore.countPages()) {
+                Quad[][] searchHits = mCore.searchPage(index, text);
+                if (searchHits != null && searchHits.length > 0) {
+                    result = new SearchTaskResult(text, index, searchHits);
+                    break; // exit the loop if results are found
                 }
-                return null;
+                index += increment;
             }
-
-            @Override
-            protected void onPostExecute(SearchTaskResult result) {
-                progressDialog.cancel();
-                if (result != null) {
-                    onTextFound(result);
+            // update UI on the main thread
+            SearchTaskResult finalResult = result;
+            ((Activity) mContext).runOnUiThread(() -> {
+                if (finalResult != null) {
+                    onTextFound(finalResult);
                 } else {
-                    mAlertBuilder.setTitle(SearchTaskResult.get() == null ? R.string.text_not_found : R.string.no_further_occurrences_found);
+                    mAlertBuilder.setTitle(R.string.no_match_found);
                     AlertDialog alert = mAlertBuilder.create();
-                    alert.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getString(R.string.dismiss),
-                            (DialogInterface.OnClickListener) null);
+                    alert.setButton(AlertDialog.BUTTON_POSITIVE, mContext.getString(R.string.dismiss), (DialogInterface.OnClickListener) null);
                     alert.show();
                 }
-            }
-
-            @Override
-            protected void onCancelled() {
-                progressDialog.cancel();
-            }
-
-            @Override
-            protected void onProgressUpdate(Integer... values) {
-                progressDialog.setProgress(values[0].intValue());
-            }
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                mHandler.postDelayed(() -> {
-                    if (!progressDialog.isCancelled()) {
-                        progressDialog.show();
-                        progressDialog.setProgress(startIndex);
-                    }
-                }, SEARCH_PROGRESS_DELAY);
-            }
-        };
-
-        mSearchTask.execute();
+            });
+        });
     }
 
-    private void testingDelay() {
-        try {
-            Thread.sleep(1500); // 100 milliseconds delay (adjust as needed)
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 }

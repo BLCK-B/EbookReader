@@ -530,9 +530,6 @@ public class DocumentActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-
-        if (mSearchTask != null)
-            mSearchTask.stop();
     }
 
     public void onDestroy() {
@@ -712,7 +709,7 @@ public class DocumentActivity extends Activity {
         int displayPage = mDocView.getDisplayedViewIndex();
         SearchTaskResult r = SearchTaskResult.get();
         int searchPage = r != null ? r.pageNumber : -1;
-        mSearchTask.go(mSearchText.getText().toString(), direction, displayPage, searchPage);
+        mSearchTask.search(mSearchText.getText().toString(), direction, displayPage, searchPage);
     }
 
     @Override
