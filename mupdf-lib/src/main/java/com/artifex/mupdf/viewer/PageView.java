@@ -25,6 +25,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.AppCompatImageView;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.Link;
@@ -59,10 +60,10 @@ public class PageView extends ViewGroup {
 
     protected int mPageNumber;
     private Point mParentSize;
-    protected Point mSize;   // Size of page at minimum zoom
+    protected Point pageSizeAtMinZoom;   // Size of page at minimum zoom
     protected float mSourceScale;
 
-    private ImageView mEntire; // Image rendered at minimum zoom
+    private ImageView imageAtMinZoom; // Image rendered at minimum zoom
     private Bitmap mEntireBm;
     private final Matrix mEntireMat;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -95,8 +96,8 @@ public class PageView extends ViewGroup {
 
     private void renderPageInBackgroundEntire() {
         setBackgroundColor(BACKGROUND_COLOR);
-        mEntire.setImageBitmap(null);
-        mEntire.invalidate();
+        imageAtMinZoom.setImageBitmap(null);
+        imageAtMinZoom.invalidate();
         if (mBusyIndicator == null) {
             mBusyIndicator = new ProgressBar(mContext);
             mBusyIndicator.setIndeterminate(true);
@@ -108,10 +109,10 @@ public class PageView extends ViewGroup {
                 }
             }, PROGRESS_DIALOG_DELAY);
         }
-        CancellableTaskDefinition<Void, Boolean> task = getDrawPageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y);
+        CancellableTaskDefinition<Void, Boolean> task = getDrawPageTask(mEntireBm, pageSizeAtMinZoom.x, pageSizeAtMinZoom.y, 0, 0, pageSizeAtMinZoom.x, pageSizeAtMinZoom.y);
         // execute rendering task in the background
         executorService.execute(() -> {
-            Boolean result = null;
+            Boolean result;
             try {
                 result = task.doInBackground();
             } catch (Exception e) {
@@ -125,8 +126,8 @@ public class PageView extends ViewGroup {
                 mBusyIndicator = null;
                 if (finalResult != null && finalResult) {
                     clearRenderError();
-                    mEntire.setImageBitmap(mEntireBm);
-                    mEntire.invalidate();
+                    imageAtMinZoom.setImageBitmap(mEntireBm);
+                    imageAtMinZoom.invalidate();
                 } else {
                     setRenderError("Error rendering page");
                 }
@@ -136,10 +137,10 @@ public class PageView extends ViewGroup {
     }
 
     private void renderPageInBackgroundEntireSimple() {
-        CancellableTaskDefinition<Void, Boolean> task = getUpdatePageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y);
+        CancellableTaskDefinition<Void, Boolean> task = getUpdatePageTask(mEntireBm, pageSizeAtMinZoom.x, pageSizeAtMinZoom.y, 0, 0, pageSizeAtMinZoom.x, pageSizeAtMinZoom.y);
         // execute rendering task in the background
         executorService.execute(() -> {
-            Boolean result = null;
+            Boolean result;
             try {
                 result = task.doInBackground();
             } catch (Exception e) {
@@ -153,8 +154,8 @@ public class PageView extends ViewGroup {
                 mBusyIndicator = null;
                 if (finalResult != null && finalResult) {
                     clearRenderError();
-                    mEntire.setImageBitmap(mEntireBm);
-                    mEntire.invalidate();
+                    imageAtMinZoom.setImageBitmap(mEntireBm);
+                    imageAtMinZoom.invalidate();
                 } else {
                     setRenderError("Error updating page");
                 }
@@ -166,12 +167,12 @@ public class PageView extends ViewGroup {
         mIsBlank = true;
         mPageNumber = 0;
 
-        if (mSize == null)
-            mSize = mParentSize;
+        if (pageSizeAtMinZoom == null)
+            pageSizeAtMinZoom = mParentSize;
 
-        if (mEntire != null) {
-            mEntire.setImageBitmap(null);
-            mEntire.invalidate();
+        if (imageAtMinZoom != null) {
+            imageAtMinZoom.setImageBitmap(null);
+            imageAtMinZoom.invalidate();
         }
 
         if (mPatch != null) {
@@ -200,13 +201,10 @@ public class PageView extends ViewGroup {
 
     public void releaseBitmaps() {
         reinit();
-
         // recycle bitmaps before releasing them.
-
         if (mEntireBm != null)
             mEntireBm.recycle();
         mEntireBm = null;
-
         if (mPatchBm != null)
             mPatchBm.recycle();
         mPatchBm = null;
@@ -215,31 +213,26 @@ public class PageView extends ViewGroup {
     public void blank(int page) {
         reinit();
         mPageNumber = page;
-
         if (mBusyIndicator == null) {
             mBusyIndicator = new ProgressBar(mContext);
             mBusyIndicator.setIndeterminate(true);
             addView(mBusyIndicator);
         }
-
         setBackgroundColor(BACKGROUND_COLOR);
     }
 
     protected void clearRenderError() {
         if (mErrorIndicator == null)
             return;
-
         removeView(mErrorIndicator);
         mErrorIndicator = null;
         invalidate();
     }
 
     protected void setRenderError(String why) {
-
         int page = mPageNumber;
         reinit();
         mPageNumber = page;
-
         if (mBusyIndicator != null) {
             removeView(mBusyIndicator);
             mBusyIndicator = null;
@@ -248,23 +241,19 @@ public class PageView extends ViewGroup {
             removeView(mSearchView);
             mSearchView = null;
         }
-
         if (mErrorIndicator == null) {
             mErrorIndicator = new OpaqueImageView(mContext);
             mErrorIndicator.setScaleType(ImageView.ScaleType.CENTER);
             addView(mErrorIndicator);
-            Drawable mErrorIcon = getResources().getDrawable(R.drawable.ic_error_red_24dp);
+            Drawable mErrorIcon = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_error_red_24dp, null);
             mErrorIndicator.setImageDrawable(mErrorIcon);
             mErrorIndicator.setBackgroundColor(BACKGROUND_COLOR);
         }
-
-        setBackgroundColor(Color.TRANSPARENT);
         mErrorIndicator.bringToFront();
         mErrorIndicator.invalidate();
     }
 
     public void setPage(int page, PointF size) {
-
         mIsBlank = false;
         // Highlights may be missing because mIsBlank was true on last draw
         if (mSearchView != null)
@@ -281,19 +270,19 @@ public class PageView extends ViewGroup {
         // This is the size at minimum zoom
         mSourceScale = Math.min(mParentSize.x / size.x, mParentSize.y / size.y);
         Point newSize = new Point((int) (size.x * mSourceScale), (int) (size.y * mSourceScale));
-        mSize = newSize;
+        pageSizeAtMinZoom = newSize;
 
         if (mErrorIndicator != null)
             return;
 
-        if (mEntire == null) {
-            mEntire = new OpaqueImageView(mContext);
-            mEntire.setScaleType(ImageView.ScaleType.MATRIX);
-            addView(mEntire);
+        if (imageAtMinZoom == null) {
+            imageAtMinZoom = new OpaqueImageView(mContext);
+            imageAtMinZoom.setScaleType(ImageView.ScaleType.MATRIX);
+            addView(imageAtMinZoom);
         }
 
-        mEntire.setImageBitmap(null);
-        mEntire.invalidate();
+        imageAtMinZoom.setImageBitmap(null);
+        imageAtMinZoom.invalidate();
 
         Handler handler = new Handler(Looper.getMainLooper());
         executorService.execute(() -> {
@@ -315,7 +304,7 @@ public class PageView extends ViewGroup {
                     super.onDraw(canvas);
                     // Work out current total scale factor
                     // from source to view
-                    final float scale = mSourceScale * (float) getWidth() / (float) mSize.x;
+                    final float scale = mSourceScale * (float) getWidth() / (float) pageSizeAtMinZoom.x;
                     final Paint paint = new Paint();
 
                     if (!mIsBlank && mSearchBoxes != null) {
@@ -364,12 +353,12 @@ public class PageView extends ViewGroup {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int x, y;
         if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED) {
-            x = mSize.x;
+            x = pageSizeAtMinZoom.x;
         } else {
             x = MeasureSpec.getSize(widthMeasureSpec);
         }
         if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) {
-            y = mSize.y;
+            y = pageSizeAtMinZoom.y;
         } else {
             y = MeasureSpec.getSize(heightMeasureSpec);
         }
@@ -391,13 +380,13 @@ public class PageView extends ViewGroup {
         int w = right - left;
         int h = bottom - top;
 
-        if (mEntire != null) {
-            if (mEntire.getWidth() != w || mEntire.getHeight() != h) {
-                mEntireMat.setScale(w / (float) mSize.x, h / (float) mSize.y);
-                mEntire.setImageMatrix(mEntireMat);
-                mEntire.invalidate();
+        if (imageAtMinZoom != null) {
+            if (imageAtMinZoom.getWidth() != w || imageAtMinZoom.getHeight() != h) {
+                mEntireMat.setScale(w / (float) pageSizeAtMinZoom.x, h / (float) pageSizeAtMinZoom.y);
+                imageAtMinZoom.setImageMatrix(mEntireMat);
+                imageAtMinZoom.invalidate();
             }
-            mEntire.layout(0, 0, w, h);
+            imageAtMinZoom.layout(0, 0, w, h);
         }
 
         if (mSearchView != null) {
@@ -442,7 +431,7 @@ public class PageView extends ViewGroup {
         }
 
         Rect viewArea = new Rect(getLeft(), getTop(), getRight(), getBottom());
-        if (viewArea.width() == mSize.x || viewArea.height() == mSize.y) {
+        if (viewArea.width() == pageSizeAtMinZoom.x || viewArea.height() == pageSizeAtMinZoom.y) {
             // If the viewArea's size matches the unzoomed size, there is no need for an hq patch
             if (mPatch != null) {
                 mPatch.setImageBitmap(null);
@@ -494,7 +483,7 @@ public class PageView extends ViewGroup {
     private void backgroundRenderPatch(CancellableTaskDefinition<Void, Boolean> task, Point patchViewSize, Rect patchArea) {
         // execute rendering task in the background
         executorService.execute(() -> {
-            Boolean result = false;
+            Boolean result;
             try {
                 result = task.doInBackground(); // Execute the background task
             } catch (Exception e) {
@@ -546,7 +535,7 @@ public class PageView extends ViewGroup {
     public int hitLink(Link link) {
         if (link.isExternal()) {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link.getURI()));
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET); // API>=21: FLAG_ACTIVITY_NEW_DOCUMENT
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
             try {
                 mContext.startActivity(intent);
             } catch (FileUriExposedException x) {
@@ -567,7 +556,7 @@ public class PageView extends ViewGroup {
         // PageView has had sufficient information to be able to
         // perform this method directly. Making that change would
         // make MuPDFCore.hitLinkPage superfluous.
-        float scale = mSourceScale * (float) getWidth() / (float) mSize.x;
+        float scale = mSourceScale * (float) getWidth() / (float) pageSizeAtMinZoom.x;
         float docRelX = (x - getLeft()) / scale;
         float docRelY = (y - getTop()) / scale;
 
