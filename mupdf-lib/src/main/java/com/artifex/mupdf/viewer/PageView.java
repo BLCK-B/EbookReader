@@ -14,10 +14,9 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.FileUriExposedException;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +29,9 @@ import androidx.appcompat.widget.AppCompatImageView;
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.Link;
 import com.artifex.mupdf.fitz.Quad;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 // Make our ImageViews opaque to optimize redraw
 class OpaqueImageView extends AppCompatImageView {
@@ -50,7 +52,6 @@ public class PageView extends ViewGroup {
 
     private static final int HIGHLIGHT_COLOR = 0x80cc6600;
     private static final int LINK_COLOR = 0x800066cc;
-    private static final int BOX_COLOR = 0xFF4444FF;
     private static final int BACKGROUND_COLOR = 0xFFFFFFFF;
     private static final int PROGRESS_DIALOG_DELAY = 200;
 
@@ -63,15 +64,13 @@ public class PageView extends ViewGroup {
 
     private ImageView mEntire; // Image rendered at minimum zoom
     private Bitmap mEntireBm;
-    private Matrix mEntireMat;
-    private AsyncTask<Void, Void, Link[]> mGetLinkInfo;
-    private CancellableAsyncTask<Void, Boolean> mDrawEntire;
-
+    private final Matrix mEntireMat;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private Point mPatchViewSize; // View size on the basis of which the patch was created
     private Rect mPatchArea;
     private ImageView mPatch;
     private Bitmap mPatchBm;
-    private CancellableAsyncTask<Void, Boolean> mDrawPatch;
     private Quad[][] mSearchBoxes;
     protected Link[] mLinks;
     private View mSearchView;
@@ -94,23 +93,76 @@ public class PageView extends ViewGroup {
         mEntireMat = new Matrix();
     }
 
+    private void renderPageInBackgroundEntire() {
+        setBackgroundColor(BACKGROUND_COLOR);
+        mEntire.setImageBitmap(null);
+        mEntire.invalidate();
+        if (mBusyIndicator == null) {
+            mBusyIndicator = new ProgressBar(mContext);
+            mBusyIndicator.setIndeterminate(true);
+            addView(mBusyIndicator);
+            mBusyIndicator.setVisibility(INVISIBLE);
+            mHandler.postDelayed(() -> {
+                if (mBusyIndicator != null) {
+                    mBusyIndicator.setVisibility(VISIBLE);
+                }
+            }, PROGRESS_DIALOG_DELAY);
+        }
+        CancellableTaskDefinition<Void, Boolean> task = getDrawPageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y);
+        // execute rendering task in the background
+        executorService.execute(() -> {
+            Boolean result = null;
+            try {
+                result = task.doInBackground();
+            } catch (Exception e) {
+                e.printStackTrace();
+                result = false;
+            }
+            // update UI on the main thread
+            Boolean finalResult = result;
+            handler.post(() -> {
+                removeView(mBusyIndicator);
+                mBusyIndicator = null;
+                if (finalResult != null && finalResult) {
+                    clearRenderError();
+                    mEntire.setImageBitmap(mEntireBm);
+                    mEntire.invalidate();
+                } else {
+                    setRenderError("Error rendering page");
+                }
+                setBackgroundColor(Color.TRANSPARENT);
+            });
+        });
+    }
+
+    private void renderPageInBackgroundEntireSimple() {
+        CancellableTaskDefinition<Void, Boolean> task = getUpdatePageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y);
+        // execute rendering task in the background
+        executorService.execute(() -> {
+            Boolean result = null;
+            try {
+                result = task.doInBackground();
+            } catch (Exception e) {
+                e.printStackTrace();
+                result = false;
+            }
+            // update UI on the main thread
+            Boolean finalResult = result;
+            handler.post(() -> {
+                removeView(mBusyIndicator);
+                mBusyIndicator = null;
+                if (finalResult != null && finalResult) {
+                    clearRenderError();
+                    mEntire.setImageBitmap(mEntireBm);
+                    mEntire.invalidate();
+                } else {
+                    setRenderError("Error updating page");
+                }
+            });
+        });
+    }
+
     private void reinit() {
-        // Cancel pending render task
-        if (mDrawEntire != null) {
-            mDrawEntire.cancel();
-            mDrawEntire = null;
-        }
-
-        if (mDrawPatch != null) {
-            mDrawPatch.cancel();
-            mDrawPatch = null;
-        }
-
-        if (mGetLinkInfo != null) {
-            mGetLinkInfo.cancel(true);
-            mGetLinkInfo = null;
-        }
-
         mIsBlank = true;
         mPageNumber = 0;
 
@@ -212,11 +264,6 @@ public class PageView extends ViewGroup {
     }
 
     public void setPage(int page, PointF size) {
-        // Cancel pending render task
-        if (mDrawEntire != null) {
-            mDrawEntire.cancel();
-            mDrawEntire = null;
-        }
 
         mIsBlank = false;
         // Highlights may be missing because mIsBlank was true on last draw
@@ -248,58 +295,18 @@ public class PageView extends ViewGroup {
         mEntire.setImageBitmap(null);
         mEntire.invalidate();
 
-        // Get the link info in the background
-        mGetLinkInfo = new AsyncTask<Void, Void, Link[]>() {
-            protected Link[] doInBackground(Void... v) {
-                return getLinkInfo();
-            }
-
-            protected void onPostExecute(Link[] v) {
-                mLinks = v;
-                if (mSearchView != null)
+        Handler handler = new Handler(Looper.getMainLooper());
+        executorService.execute(() -> {
+            Link[] links = getLinkInfo();
+            handler.post(() -> {
+                mLinks = links;
+                if (mSearchView != null) {
                     mSearchView.invalidate();
-            }
-        };
-
-        mGetLinkInfo.execute();
-
-        // Render the page in the background
-        mDrawEntire = new CancellableAsyncTask<Void, Boolean>(getDrawPageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y)) {
-
-            @Override
-            public void onPreExecute() {
-                setBackgroundColor(BACKGROUND_COLOR);
-                mEntire.setImageBitmap(null);
-                mEntire.invalidate();
-
-                if (mBusyIndicator == null) {
-                    mBusyIndicator = new ProgressBar(mContext);
-                    mBusyIndicator.setIndeterminate(true);
-                    addView(mBusyIndicator);
-                    mBusyIndicator.setVisibility(INVISIBLE);
-                    mHandler.postDelayed(() -> {
-                        if (mBusyIndicator != null)
-                            mBusyIndicator.setVisibility(VISIBLE);
-                    }, PROGRESS_DIALOG_DELAY);
                 }
-            }
+            });
+        });
 
-            @Override
-            public void onPostExecute(Boolean result) {
-                removeView(mBusyIndicator);
-                mBusyIndicator = null;
-                if (result) {
-                    clearRenderError();
-                    mEntire.setImageBitmap(mEntireBm);
-                    mEntire.invalidate();
-                } else {
-                    setRenderError("Error rendering page");
-                }
-                setBackgroundColor(Color.TRANSPARENT);
-            }
-        };
-
-        mDrawEntire.execute();
+        renderPageInBackgroundEntire();
 
         if (mSearchView == null) {
             mSearchView = new View(mContext) {
@@ -420,7 +427,7 @@ public class PageView extends ViewGroup {
 
         if (mErrorIndicator != null) {
             int bw = (int) (8.5 * mErrorIndicator.getMeasuredWidth());
-            int bh = (int) (11 * mErrorIndicator.getMeasuredHeight());
+            int bh = 11 * mErrorIndicator.getMeasuredHeight();
             mErrorIndicator.layout((w - bw) / 2, (h - bh) / 2, (w + bw) / 2, (h + bh) / 2);
         }
     }
@@ -460,12 +467,6 @@ public class PageView extends ViewGroup {
 
             boolean completeRedraw = !(area_unchanged && update);
 
-            // Stop the drawing of previous patch if still going
-            if (mDrawPatch != null) {
-                mDrawPatch.cancel();
-                mDrawPatch = null;
-            }
-
             // Create and add the image view if not already done
             if (mPatch == null) {
                 mPatch = new OpaqueImageView(mContext);
@@ -486,68 +487,45 @@ public class PageView extends ViewGroup {
                         patchArea.left, patchArea.top,
                         patchArea.width(), patchArea.height());
 
-            mDrawPatch = new CancellableAsyncTask<Void, Boolean>(task) {
-
-                public void onPostExecute(Boolean result) {
-                    if (result) {
-                        mPatchViewSize = patchViewSize;
-                        mPatchArea = patchArea;
-                        clearRenderError();
-                        mPatch.setImageBitmap(mPatchBm);
-                        mPatch.invalidate();
-                        //requestLayout();
-                        // Calling requestLayout here doesn't lead to a later call to layout. No idea
-                        // why, but apparently others have run into the problem.
-                        mPatch.layout(mPatchArea.left, mPatchArea.top, mPatchArea.right, mPatchArea.bottom);
-                    } else {
-                        setRenderError("Error rendering patch");
-                    }
-                }
-            };
-
-            mDrawPatch.execute();
+            backgroundRenderPatch(task, patchViewSize, patchArea);
         }
     }
 
-    public void update() {
-        // Cancel pending render task
-        if (mDrawEntire != null) {
-            mDrawEntire.cancel();
-            mDrawEntire = null;
-        }
-
-        if (mDrawPatch != null) {
-            mDrawPatch.cancel();
-            mDrawPatch = null;
-        }
-
-        // Render the page in the background
-        mDrawEntire = new CancellableAsyncTask<>(getUpdatePageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y)) {
-
-            public void onPostExecute(Boolean result) {
-                if (result) {
-                    clearRenderError();
-                    mEntire.setImageBitmap(mEntireBm);
-                    mEntire.invalidate();
-                } else {
-                    setRenderError("Error updating page");
-                }
+    private void backgroundRenderPatch(CancellableTaskDefinition<Void, Boolean> task, Point patchViewSize, Rect patchArea) {
+        // execute rendering task in the background
+        executorService.execute(() -> {
+            Boolean result = false;
+            try {
+                result = task.doInBackground(); // Execute the background task
+            } catch (Exception e) {
+                e.printStackTrace();
+                result = false; // Handle exceptions
             }
-        };
+            // Update UI on the main thread
+            Boolean finalResult = result;
+            handler.post(() -> {
+                if (finalResult != null && finalResult) {
+                    mPatchViewSize = patchViewSize;  // Update view size based on rendering
+                    mPatchArea = patchArea;          // Update area based on rendering
 
-        mDrawEntire.execute();
+                    clearRenderError();              // Clear any previous errors
+                    mPatch.setImageBitmap(mPatchBm); // Set the new bitmap to the patch view
+                    mPatch.invalidate();              // Invalidate to redraw the view
+                    // Layout the patch view based on updated area
+                    mPatch.layout(mPatchArea.left, mPatchArea.top, mPatchArea.right, mPatchArea.bottom);
+                } else {
+                    setRenderError("Error rendering patch"); // Handle error case
+                }
+            });
+        });
+    }
 
+    public void update() {
+        renderPageInBackgroundEntireSimple();
         updateHq(true);
     }
 
     public void removeHq() {
-        // Stop the drawing of the patch if still going
-        if (mDrawPatch != null) {
-            mDrawPatch.cancel();
-            mDrawPatch = null;
-        }
-
-        // And get rid of it
         mPatchViewSize = null;
         mPatchArea = null;
         if (mPatch != null) {
@@ -607,10 +585,6 @@ public class PageView extends ViewGroup {
             public Boolean doInBackground(Cookie cookie, Void... params) {
                 if (bm == null)
                     return Boolean.FALSE;
-                // Workaround bug in Android Honeycomb 3.x, where the bitmap generation count
-                // is not incremented when drawing.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-                    bm.eraseColor(0);
                 try {
                     mCore.drawPage(bm, mPageNumber, sizeX, sizeY, patchX, patchY, patchWidth, patchHeight, cookie);
                     return Boolean.TRUE;
@@ -629,10 +603,6 @@ public class PageView extends ViewGroup {
             public Boolean doInBackground(Cookie cookie, Void... params) {
                 if (bm == null)
                     return Boolean.FALSE;
-                // Workaround bug in Android Honeycomb 3.x, where the bitmap generation count
-                // is not incremented when drawing.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-                    bm.eraseColor(0);
                 try {
                     mCore.updatePage(bm, mPageNumber, sizeX, sizeY, patchX, patchY, patchWidth, patchHeight, cookie);
                     return Boolean.TRUE;
