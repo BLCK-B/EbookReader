@@ -82,6 +82,8 @@ public class DocumentActivity extends Activity {
     protected View mLayoutButton;
     protected PopupMenu mLayoutPopupMenu;
 
+    private int displayedPage = 0;
+
     private MuPDFCore openBuffer(byte[] buffer, String magic) {
         try {
             core = new MuPDFCore(buffer, magic);
@@ -269,8 +271,7 @@ public class DocumentActivity extends Activity {
         int pageNum = sharedPreferences.getInt("currentPage", 0);
         Log.i(APP, "Loading persistence " + fontSize + " " + pageNum);
         setFontSize(fontSize);
-//        goToPage(pageNum);
-        relayoutDocument(pageNum);
+        displayedPage = pageNum;
     }
 
     public void setFontSize(int fontSize) {
@@ -303,20 +304,13 @@ public class DocumentActivity extends Activity {
     }
 
     public void relayoutDocument() {
+        //  side effects.. necessary to change font size
         int loc = core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM);
-        mFlatOutline = null;
-        mDocView.mHistory.clear();
-        mDocView.refresh();
-        Log.i(APP, "relayout document changes to:" + loc);
-        mDocView.setDisplayedViewIndex(loc);
-    }
 
-    public void relayoutDocument(int override) {
-        int loc = core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM);
         mFlatOutline = null;
         mDocView.mHistory.clear();
         mDocView.refresh();
-        mDocView.setDisplayedViewIndex(override);
+        mDocView.setDisplayedViewIndex(displayedPage);
     }
 
     public void createUI(Bundle savedInstanceState) {
@@ -496,17 +490,10 @@ public class DocumentActivity extends Activity {
         } else {
             mOutlineButton.setVisibility(View.GONE);
         }
-
-        // Reenstate last state if it was recorded
-//        SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-//        mDocView.setDisplayedViewIndex(prefs.getInt("page" + mDocKey, 0));
-
         if (savedInstanceState == null || !savedInstanceState.getBoolean("ButtonsHidden", false))
             showButtons();
-
         if (savedInstanceState != null && savedInstanceState.getBoolean("SearchMode", false))
             searchModeOn();
-
         // Stick the document view and the buttons overlay into a parent view
         RelativeLayout layout = new RelativeLayout(this);
         layout.setBackgroundColor(Color.DKGRAY);
@@ -533,15 +520,6 @@ public class DocumentActivity extends Activity {
         if (mDocKey != null && mDocView != null) {
             if (mDocTitle != null)
                 outState.putString("DocTitle", mDocTitle);
-
-            // Store current page in the prefs against the file name,
-            // so that we can pick it up each time the file is loaded
-            // Other info is needed only for screen-orientation change,
-            // so it can go in the bundle
-            SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-            SharedPreferences.Editor edit = prefs.edit();
-            edit.putInt("page" + mDocKey, mDocView.getDisplayedViewIndex());
-            edit.apply();
         }
 
         if (!mButtonsVisible)
@@ -557,13 +535,6 @@ public class DocumentActivity extends Activity {
 
         if (mSearchTask != null)
             mSearchTask.stop();
-
-        if (mDocKey != null && mDocView != null) {
-            SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-            SharedPreferences.Editor edit = prefs.edit();
-            edit.putInt("page" + mDocKey, mDocView.getDisplayedViewIndex());
-            edit.apply();
-        }
     }
 
     public void onDestroy() {
@@ -776,7 +747,6 @@ public class DocumentActivity extends Activity {
 
     @Override
     protected void onStop() {
-//        persistData(mLayoutEM, core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM));
         persistData(mLayoutEM, mDocView.getDisplayedViewIndex());
         super.onStop();
     }
