@@ -3,6 +3,7 @@ package com.example.reader;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,6 +16,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         openFilePicker();
     }
 
@@ -33,16 +35,17 @@ public class MainActivity extends AppCompatActivity {
             // The user selected a file
             if (data != null) {
                 Uri documentUri = data.getData();
+                Log.i("MainActivity", "Selected document URI: " + documentUri.toString());
                 startMuPDFActivity(documentUri);
             }
         }
     }
 
-    private void startMuPDFActivity(Uri documentUri) {
+    public void startMuPDFActivity(Uri documentUri) {
         Intent intent = new Intent(this, DocumentActivity.class);
         intent.setAction(Intent.ACTION_VIEW);
         intent.setData(documentUri);
         startActivity(intent);
-        finish(); // Optional: finish MainActivity if you don't want to return to it
+        finish();
     }
 }

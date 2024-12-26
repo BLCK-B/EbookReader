@@ -213,12 +213,4 @@ public class MuPDFCore {
         flattenOutlineNodes(result, outline, "");
         return result;
     }
-
-    public synchronized boolean needsPassword() {
-        return doc.needsPassword();
-    }
-
-    public synchronized boolean authenticatePassword(String password) {
-        return doc.authenticatePassword(password);
-    }
 }

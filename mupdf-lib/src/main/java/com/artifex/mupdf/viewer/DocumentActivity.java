@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -54,7 +53,6 @@ public class DocumentActivity extends Activity {
     private ReaderView mDocView;
     private View mButtonsView;
     private boolean mButtonsVisible;
-    private EditText mPasswordView;
     private TextView mDocNameView;
     private SeekBar mPageSlider;
     private int mPageSliderRes;
@@ -106,9 +104,7 @@ public class DocumentActivity extends Activity {
 
     private MuPDFCore openCore(Uri uri, long size, String mimetype) throws IOException {
         ContentResolver cr = getContentResolver();
-
         Log.i(APP, "Opening document " + uri);
-
         InputStream is = cr.openInputStream(uri);
         byte[] buf = null;
         int used = -1;
@@ -136,7 +132,6 @@ public class DocumentActivity extends Activity {
         } finally {
             is.close();
         }
-
         if (buf != null) {
             Log.i(APP, "  Opening document from memory buffer of size " + buf.length);
             return openBuffer(buf, mimetype);
@@ -233,10 +228,6 @@ public class DocumentActivity extends Activity {
                     return;
                 }
             }
-            if (core != null && core.needsPassword()) {
-                requestPassword(savedInstanceState);
-                return;
-            }
             if (core != null && core.countPages() == 0) {
                 core = null;
             }
@@ -250,9 +241,7 @@ public class DocumentActivity extends Activity {
             alert.show();
             return;
         }
-
         createUI(savedInstanceState);
-
         applySavedData();
     }
 
@@ -267,7 +256,7 @@ public class DocumentActivity extends Activity {
 
     public void applySavedData() {
         SharedPreferences sharedPreferences = getSharedPreferences("LastState", MODE_PRIVATE);
-        int fontSize = sharedPreferences.getInt("fontSize", 12);
+        int fontSize = sharedPreferences.getInt("fontSize", 9);
         int pageNum = sharedPreferences.getInt("currentPage", 0);
         Log.i(APP, "Loading persistence " + fontSize + " " + pageNum);
         setFontSize(fontSize);
@@ -278,39 +267,24 @@ public class DocumentActivity extends Activity {
         mLayoutEM = fontSize;
     }
 
-    public void goToPage(int value) {
-        mDocView.setDisplayedViewIndex(value);
-    }
-
-    public void requestPassword(final Bundle savedInstanceState) {
-        mPasswordView = new EditText(this);
-        mPasswordView.setInputType(EditorInfo.TYPE_TEXT_VARIATION_PASSWORD);
-        mPasswordView.setTransformationMethod(new PasswordTransformationMethod());
-
-        AlertDialog alert = mAlertBuilder.create();
-        alert.setTitle(R.string.enter_password);
-        alert.setView(mPasswordView);
-        alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.okay),
-                (dialog, which) -> {
-                    if (core.authenticatePassword(mPasswordView.getText().toString())) {
-                        createUI(savedInstanceState);
-                    } else {
-                        requestPassword(savedInstanceState);
-                    }
-                });
-        alert.setButton(AlertDialog.BUTTON_NEGATIVE, getString(R.string.cancel),
-                (dialog, which) -> finish());
-        alert.show();
-    }
-
     public void relayoutDocument() {
-        // side effects.. necessary to change font size
+        displayedPage = mDocView.getDisplayedViewIndex();
+        final float oldProgress = (float) displayedPage / core.countPages();
+
+        // side effects.. necessary to change font size and to update countPages()
         int loc = core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM);
 
         mFlatOutline = null;
         mDocView.mHistory.clear();
         mDocView.refresh();
-        mDocView.setDisplayedViewIndex(displayedPage);
+
+        // update page count indicator
+        updatePageNumView(displayedPage);
+        // update slider
+        mPageSlider.setMax((core.countPages() - 1) * mPageSliderRes);
+
+        final int pageAdjustedForProgress = Math.round(oldProgress * core.countPages());
+        mDocView.setDisplayedViewIndex(pageAdjustedForProgress);
     }
 
     public void createUI(Bundle savedInstanceState) {
