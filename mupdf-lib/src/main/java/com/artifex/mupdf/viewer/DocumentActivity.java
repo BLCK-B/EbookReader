@@ -242,7 +242,9 @@ public class DocumentActivity extends Activity {
             return;
         }
         createUI(savedInstanceState);
+        // my additions
         applySavedData();
+        updateLayoutInit();
     }
 
     public void persistData(int fontSize, int currentPage) {
@@ -260,19 +262,27 @@ public class DocumentActivity extends Activity {
         int pageNum = sharedPreferences.getInt("currentPage", 0);
         Log.i(APP, "Loading persistence " + fontSize + " " + pageNum);
         setFontSize(fontSize);
-        displayedPage = pageNum;
+        setDisplayedPage(pageNum);
     }
 
     public void setFontSize(int fontSize) {
         mLayoutEM = fontSize;
     }
 
-    public void relayoutDocument() {
+    public void setDisplayedPage(int page) {
+        displayedPage = page;
+    }
+
+    public void updateLayoutInit() {
+        core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
+        mDocView.setDisplayedViewIndex(displayedPage);
+    }
+
+    public void updateLayoutFontChange() {
         displayedPage = mDocView.getDisplayedViewIndex();
         final float oldProgress = (float) displayedPage / core.countPages();
 
-        // side effects.. necessary to change font size and to update countPages()
-        int loc = core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM);
+        core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
 
         mFlatOutline = null;
         mDocView.mHistory.clear();
@@ -318,18 +328,6 @@ public class DocumentActivity extends Activity {
             @Override
             protected void onDocMotion() {
                 hideButtons();
-            }
-
-            @Override
-            public void onSizeChanged(int w, int h, int oldw, int oldh) {
-                if (core.isReflowable()) {
-                    mLayoutW = w * 72 / mDisplayDPI;
-                    mLayoutH = h * 72 / mDisplayDPI;
-                    relayoutDocument();
-                    applySavedData();
-                } else {
-                    refresh();
-                }
             }
         };
         mDocView.setAdapter(new PageAdapter(this, core));
@@ -431,16 +429,14 @@ public class DocumentActivity extends Activity {
             mLayoutPopupMenu.getMenuInflater().inflate(R.menu.layout_menu, mLayoutPopupMenu.getMenu());
             mLayoutPopupMenu.setOnMenuItemClickListener(item -> {
                 int id = item.getItemId();
-                if (id == R.id.action_layout_6pt) mLayoutEM = 6;
-                else if (id == R.id.action_layout_7pt) mLayoutEM = 7;
-                else if (id == R.id.action_layout_8pt) mLayoutEM = 8;
+                if (id == R.id.action_layout_8pt) mLayoutEM = 8;
                 else if (id == R.id.action_layout_9pt) mLayoutEM = 9;
                 else if (id == R.id.action_layout_10pt) mLayoutEM = 10;
                 else if (id == R.id.action_layout_11pt) mLayoutEM = 11;
                 else if (id == R.id.action_layout_12pt) mLayoutEM = 12;
                 else if (id == R.id.action_layout_13pt) mLayoutEM = 13;
                 else if (id == R.id.action_layout_14pt) mLayoutEM = 14;
-                relayoutDocument();
+                updateLayoutFontChange();
                 return true;
             });
             mLayoutButton.setOnClickListener(v -> mLayoutPopupMenu.show());
@@ -662,7 +658,6 @@ public class DocumentActivity extends Activity {
         mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
         mTopBarSwitcher.setVisibility(View.INVISIBLE);
         mPageNumberView.setVisibility(View.INVISIBLE);
-
         mPageSlider.setVisibility(View.INVISIBLE);
     }
 

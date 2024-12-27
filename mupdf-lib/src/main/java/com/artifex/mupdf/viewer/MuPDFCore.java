@@ -64,6 +64,17 @@ public class MuPDFCore {
         return reflowable;
     }
 
+    public void updateLayout(int width, int height, int fontSize) {
+        doc.layout(width, height, fontSize);
+        pageCount = doc.countPages();
+        outline = null;
+        try {
+            outline = doc.loadOutline();
+        } catch (Exception ex) {
+            /* ignore error */
+        }
+    }
+
     public synchronized int layout(int oldPage, int w, int h, int em) {
         if (w != layoutW || h != layoutH || em != layoutEM) {
             System.out.println("LAYOUT: " + w + "," + h);
