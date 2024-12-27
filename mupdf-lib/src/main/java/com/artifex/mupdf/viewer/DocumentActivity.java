@@ -281,7 +281,6 @@ public class DocumentActivity extends Activity {
     public void updateLayoutFontChange() {
         displayedPage = mDocView.getDisplayedViewIndex();
         final float oldProgress = (float) displayedPage / core.countPages();
-
         core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
 
         mFlatOutline = null;
@@ -308,7 +307,6 @@ public class DocumentActivity extends Activity {
             protected void onMoveToChild(int i) {
                 if (core == null)
                     return;
-
                 mPageNumberView.setText(String.format(Locale.ROOT, "%d / %d", i + 1, core.countPages()));
                 mPageSlider.setMax((core.countPages() - 1) * mPageSliderRes);
                 mPageSlider.setProgress(i * mPageSliderRes);
@@ -328,6 +326,17 @@ public class DocumentActivity extends Activity {
             @Override
             protected void onDocMotion() {
                 hideButtons();
+            }
+
+            // TODO: sets correct dimensions only on font change via buttons -> init scale is wrong
+            @Override
+            public void onSizeChanged(int w, int h, int oldw, int oldh) {
+                if (core.isReflowable()) {
+                    mLayoutW = w * 72 / mDisplayDPI;
+                    mLayoutH = h * 72 / mDisplayDPI;
+                } else {
+                    refresh();
+                }
             }
         };
         mDocView.setAdapter(new PageAdapter(this, core));

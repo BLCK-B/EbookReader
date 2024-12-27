@@ -331,7 +331,6 @@ public class ReaderView
         /* All page views need recreating since both page and screen has changed size,
          * invalidating both sizes and bitmaps. */
         mAdapter.refresh();
-        int numChildren = mChildViews.size();
         for (int i = 0; i < mChildViews.size(); i++) {
             View v = mChildViews.valueAt(i);
             onNotInUse(v);
@@ -475,30 +474,27 @@ public class ReaderView
     public boolean onScale(ScaleGestureDetector detector) {
         float previousScale = mScale;
         mScale = Math.min(Math.max(mScale * detector.getScaleFactor(), MIN_SCALE), MAX_SCALE);
+        float factor = mScale / previousScale;
 
-        {
-            float factor = mScale / previousScale;
+        View v = mChildViews.get(mCurrent);
+        if (v != null) {
+            float currentFocusX = detector.getFocusX();
+            float currentFocusY = detector.getFocusY();
+            // Work out the focus point relative to the view top left
+            int viewFocusX = (int) currentFocusX - (v.getLeft() + mXScroll);
+            int viewFocusY = (int) currentFocusY - (v.getTop() + mYScroll);
+            // Scroll to maintain the focus point
+            mXScroll += (int) (viewFocusX - viewFocusX * factor);
+            mYScroll += (int) (viewFocusY - viewFocusY * factor);
 
-            View v = mChildViews.get(mCurrent);
-            if (v != null) {
-                float currentFocusX = detector.getFocusX();
-                float currentFocusY = detector.getFocusY();
-                // Work out the focus point relative to the view top left
-                int viewFocusX = (int) currentFocusX - (v.getLeft() + mXScroll);
-                int viewFocusY = (int) currentFocusY - (v.getTop() + mYScroll);
-                // Scroll to maintain the focus point
-                mXScroll += (int) (viewFocusX - viewFocusX * factor);
-                mYScroll += (int) (viewFocusY - viewFocusY * factor);
+            if (mLastScaleFocusX >= 0)
+                mXScroll += (int) (currentFocusX - mLastScaleFocusX);
+            if (mLastScaleFocusY >= 0)
+                mYScroll += (int) (currentFocusY - mLastScaleFocusY);
 
-                if (mLastScaleFocusX >= 0)
-                    mXScroll += (int) (currentFocusX - mLastScaleFocusX);
-                if (mLastScaleFocusY >= 0)
-                    mYScroll += (int) (currentFocusY - mLastScaleFocusY);
-
-                mLastScaleFocusX = currentFocusX;
-                mLastScaleFocusY = currentFocusY;
-                requestLayout();
-            }
+            mLastScaleFocusX = currentFocusX;
+            mLastScaleFocusY = currentFocusY;
+            requestLayout();
         }
         return true;
     }
