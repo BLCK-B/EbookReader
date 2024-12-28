@@ -78,9 +78,13 @@ public class DocumentActivity extends Activity {
     private int mLayoutH = 504;
 
     protected View mLayoutButton;
+
     protected PopupMenu mLayoutPopupMenu;
 
     private int displayedPage = 0;
+
+    private SeekBar contrastSeekBar;
+    private ImageButton themeButton;
 
     private MuPDFCore openBuffer(byte[] buffer, String magic) {
         try {
@@ -480,6 +484,34 @@ public class DocumentActivity extends Activity {
         layout.addView(mDocView);
         layout.addView(mButtonsView);
         setContentView(layout);
+
+        // theme slider controller
+        View themeSliderLayout = getLayoutInflater().inflate(R.layout.theme_slider, null);
+        layout.addView(themeSliderLayout);
+        contrastSeekBar = findViewById(R.id.contrastSeekBar);
+        contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Update the TextView with the current contrast level
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Optional: Add any action when touch starts
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Optional: Add any action when touch stops
+            }
+        });
+        // theme button
+        themeButton.setOnClickListener(b -> {
+            if (contrastSeekBar.getVisibility() == View.VISIBLE)
+                contrastSeekBar.setVisibility(View.GONE);
+            else
+                contrastSeekBar.setVisibility(View.VISIBLE);
+        });
     }
 
     @Override
@@ -668,6 +700,7 @@ public class DocumentActivity extends Activity {
         mSearchText = mButtonsView.findViewById(R.id.searchText);
         mLinkButton = mButtonsView.findViewById(R.id.linkButton);
         mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
+        themeButton = mButtonsView.findViewById(R.id.themeButton);
         mTopBarSwitcher.setVisibility(View.INVISIBLE);
         mPageNumberView.setVisibility(View.INVISIBLE);
         mPageSlider.setVisibility(View.INVISIBLE);
