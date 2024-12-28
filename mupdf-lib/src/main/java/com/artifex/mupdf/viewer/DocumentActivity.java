@@ -244,7 +244,6 @@ public class DocumentActivity extends Activity {
         createUI(savedInstanceState);
         // my additions
         applySavedData();
-        updateLayoutInit();
     }
 
     public void persistData(int fontSize, int currentPage) {
@@ -327,13 +326,15 @@ public class DocumentActivity extends Activity {
             protected void onDocMotion() {
                 hideButtons();
             }
-
-            // TODO: sets correct dimensions only on font change via buttons -> init scale is wrong
+            
             @Override
             public void onSizeChanged(int w, int h, int oldw, int oldh) {
                 if (core.isReflowable()) {
+                    // this runs only once
                     mLayoutW = w * 72 / mDisplayDPI;
                     mLayoutH = h * 72 / mDisplayDPI;
+                    // after dimensions set, update UI on initial
+                    updateLayoutInit();
                 } else {
                     refresh();
                 }
