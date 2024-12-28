@@ -247,8 +247,9 @@ public class DocumentActivity extends Activity {
     }
 
     public void persistData(int fontSize, int currentPage) {
-        Log.i(APP, "Saving persistence " + fontSize + " " + currentPage);
-        SharedPreferences sharedPreferences = getSharedPreferences("LastState", MODE_PRIVATE);
+        final String bookId = mDocTitle.replace(" ", "");
+        Log.i(APP, "Book id " + bookId);
+        SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt("fontSize", fontSize);
         editor.putInt("currentPage", currentPage);
@@ -256,7 +257,8 @@ public class DocumentActivity extends Activity {
     }
 
     public void applySavedData() {
-        SharedPreferences sharedPreferences = getSharedPreferences("LastState", MODE_PRIVATE);
+        final String bookId = mDocTitle.replace(" ", "");
+        SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
         int fontSize = sharedPreferences.getInt("fontSize", 9);
         int pageNum = sharedPreferences.getInt("currentPage", 0);
         Log.i(APP, "Loading persistence " + fontSize + " " + pageNum);
@@ -326,7 +328,7 @@ public class DocumentActivity extends Activity {
             protected void onDocMotion() {
                 hideButtons();
             }
-            
+
             @Override
             public void onSizeChanged(int w, int h, int oldw, int oldh) {
                 if (core.isReflowable()) {
