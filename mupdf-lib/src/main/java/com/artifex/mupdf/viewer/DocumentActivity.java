@@ -484,9 +484,12 @@ public class DocumentActivity extends Activity {
         layout.addView(mDocView);
         layout.addView(mButtonsView);
         setContentView(layout);
-        
+
         // theme button
-        themeButton.setOnClickListener(b -> PageView.toggleInvertRender());
+        themeButton.setOnClickListener(b -> {
+            PageView.toggleInvertRender();
+            mDocView.refresh();
+        });
     }
 
     @Override
