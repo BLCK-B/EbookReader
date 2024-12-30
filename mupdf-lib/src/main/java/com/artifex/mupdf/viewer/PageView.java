@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -82,6 +84,11 @@ public class PageView extends ViewGroup {
 
     private ProgressBar mBusyIndicator;
     private final Handler mHandler = new Handler();
+    private boolean invertRender = false;
+
+    public void toggleInvertRender() {
+        invertRender = !invertRender;
+    }
 
     public PageView(Context c, MuPDFCore core, Point parentSize, Bitmap sharedHqBm) {
         super(c);
@@ -126,7 +133,7 @@ public class PageView extends ViewGroup {
                 mBusyIndicator = null;
                 if (finalResult != null && finalResult) {
                     clearRenderError();
-                    imageAtMinZoom.setImageBitmap(mEntireBm);
+                    imageAtMinZoom.setImageBitmap(invertRender ? invert(mEntireBm) : mEntireBm);
                     imageAtMinZoom.invalidate();
                 } else {
                     setRenderError("Error rendering page");
@@ -136,8 +143,7 @@ public class PageView extends ViewGroup {
         });
     }
 
-    private void renderPageInBackgroundEntireSimple() {
-        CancellableTaskDefinition<Void, Boolean> task = getUpdatePageTask(mEntireBm, pageSizeAtMinZoom.x, pageSizeAtMinZoom.y, 0, 0, pageSizeAtMinZoom.x, pageSizeAtMinZoom.y);
+    private void backgroundRenderPatch(CancellableTaskDefinition<Void, Boolean> task, Point patchViewSize, Rect patchArea) {
         // execute rendering task in the background
         executorService.execute(() -> {
             Boolean result;
@@ -150,18 +156,46 @@ public class PageView extends ViewGroup {
             // update UI on the main thread
             Boolean finalResult = result;
             handler.post(() -> {
-                removeView(mBusyIndicator);
-                mBusyIndicator = null;
                 if (finalResult != null && finalResult) {
+                    mPatchViewSize = patchViewSize;
+                    mPatchArea = patchArea;
                     clearRenderError();
-                    imageAtMinZoom.setImageBitmap(mEntireBm);
-                    imageAtMinZoom.invalidate();
+                    mPatch.setImageBitmap(invertRender ? invert(mPatchBm) : mPatchBm);
+                    mPatch.invalidate();
+                    mPatch.layout(mPatchArea.left, mPatchArea.top, mPatchArea.right, mPatchArea.bottom);
                 } else {
-                    setRenderError("Error updating page");
+                    setRenderError("Error rendering patch");
                 }
             });
         });
     }
+
+    private Bitmap invert(Bitmap src) {
+        int height = src.getHeight();
+        int width = src.getWidth();
+
+        Bitmap bitmap = Bitmap.createBitmap(width, height, src.getConfig());
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint();
+
+        ColorMatrix matrixGrayscale = new ColorMatrix();
+
+        ColorMatrix matrixInvert = new ColorMatrix();
+        matrixInvert.set(new float[]{
+                -1.0f, 0.0f, 0.0f, 0.0f, 255.0f,
+                0.0f, -1.0f, 0.0f, 0.0f, 255.0f,
+                0.0f, 0.0f, -1.0f, 0.0f, 255.0f,
+                0.0f, 0.0f, 0.0f, 1.0f, 0.0f
+        });
+        matrixInvert.preConcat(matrixGrayscale);
+
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrixInvert);
+        paint.setColorFilter(filter);
+
+        canvas.drawBitmap(src, 0, 0, paint);
+        return bitmap;
+    }
+
 
     private void reinit() {
         mIsBlank = true;
@@ -478,40 +512,6 @@ public class PageView extends ViewGroup {
 
             backgroundRenderPatch(task, patchViewSize, patchArea);
         }
-    }
-
-    private void backgroundRenderPatch(CancellableTaskDefinition<Void, Boolean> task, Point patchViewSize, Rect patchArea) {
-        // execute rendering task in the background
-        executorService.execute(() -> {
-            Boolean result;
-            try {
-                result = task.doInBackground(); // Execute the background task
-            } catch (Exception e) {
-                e.printStackTrace();
-                result = false; // Handle exceptions
-            }
-            // Update UI on the main thread
-            Boolean finalResult = result;
-            handler.post(() -> {
-                if (finalResult != null && finalResult) {
-                    mPatchViewSize = patchViewSize;  // Update view size based on rendering
-                    mPatchArea = patchArea;          // Update area based on rendering
-
-                    clearRenderError();              // Clear any previous errors
-                    mPatch.setImageBitmap(mPatchBm); // Set the new bitmap to the patch view
-                    mPatch.invalidate();              // Invalidate to redraw the view
-                    // Layout the patch view based on updated area
-                    mPatch.layout(mPatchArea.left, mPatchArea.top, mPatchArea.right, mPatchArea.bottom);
-                } else {
-                    setRenderError("Error rendering patch"); // Handle error case
-                }
-            });
-        });
-    }
-
-    public void update() {
-        renderPageInBackgroundEntireSimple();
-        updateHq(true);
     }
 
     public void removeHq() {
