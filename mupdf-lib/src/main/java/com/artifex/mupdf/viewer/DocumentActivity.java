@@ -257,6 +257,7 @@ public class DocumentActivity extends Activity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt("fontSize", fontSize);
         editor.putInt("currentPage", currentPage);
+        editor.putInt("invertTheme", PageView.getInvert() ? 1 : 0);
         editor.apply();
     }
 
@@ -265,9 +266,11 @@ public class DocumentActivity extends Activity {
         SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
         int fontSize = sharedPreferences.getInt("fontSize", 9);
         int pageNum = sharedPreferences.getInt("currentPage", 0);
+        boolean invertTheme = sharedPreferences.getInt("invertTheme", 0) == 1;
         Log.i(APP, "Loading persistence " + fontSize + " " + pageNum);
         setFontSize(fontSize);
         setDisplayedPage(pageNum);
+        PageView.setInvert(invertTheme);
     }
 
     public void setFontSize(int fontSize) {

@@ -90,6 +90,14 @@ public class PageView extends ViewGroup {
         invertRender = !invertRender;
     }
 
+    public static void setInvert(boolean invert) {
+        invertRender = invert;
+    }
+
+    public static boolean getInvert() {
+        return invertRender;
+    }
+
     public PageView(Context c, MuPDFCore core, Point parentSize, Bitmap sharedHqBm) {
         super(c);
         mContext = c;
