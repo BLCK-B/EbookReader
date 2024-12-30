@@ -84,9 +84,9 @@ public class PageView extends ViewGroup {
 
     private ProgressBar mBusyIndicator;
     private final Handler mHandler = new Handler();
-    private boolean invertRender = false;
+    private static boolean invertRender = false;
 
-    public void toggleInvertRender() {
+    public static void toggleInvertRender() {
         invertRender = !invertRender;
     }
 

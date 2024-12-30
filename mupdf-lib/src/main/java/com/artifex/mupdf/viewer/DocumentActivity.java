@@ -484,34 +484,9 @@ public class DocumentActivity extends Activity {
         layout.addView(mDocView);
         layout.addView(mButtonsView);
         setContentView(layout);
-
-        // theme slider controller
-        View themeSliderLayout = getLayoutInflater().inflate(R.layout.theme_slider, null);
-        layout.addView(themeSliderLayout);
-        contrastSeekBar = findViewById(R.id.contrastSeekBar);
-        contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // Update the TextView with the current contrast level
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // Optional: Add any action when touch starts
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // Optional: Add any action when touch stops
-            }
-        });
+        
         // theme button
-        themeButton.setOnClickListener(b -> {
-            if (contrastSeekBar.getVisibility() == View.VISIBLE)
-                contrastSeekBar.setVisibility(View.GONE);
-            else
-                contrastSeekBar.setVisibility(View.VISIBLE);
-        });
+        themeButton.setOnClickListener(b -> PageView.toggleInvertRender());
     }
 
     @Override
