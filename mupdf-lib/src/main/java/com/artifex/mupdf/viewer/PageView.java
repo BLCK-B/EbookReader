@@ -54,7 +54,8 @@ public class PageView extends ViewGroup {
     private final MuPDFCore mCore;
 
     private static final int HIGHLIGHT_COLOR = 0x80cc6600;
-    private static final int LINK_COLOR = 0x800066cc;
+    private static final int LINK_COLOR_LIGHT = 0x1A0000FF;
+    private static final int LINK_COLOR_DARK = 0x26FFFFFF;
     private static final int BACKGROUND_COLOR = 0xFFFFFFFF;
     private static final int PROGRESS_DIALOG_DELAY = 200;
 
@@ -78,7 +79,6 @@ public class PageView extends ViewGroup {
     protected Link[] mLinks;
     private View mSearchView;
     private boolean mIsBlank;
-    private boolean mHighlightLinks;
 
     private ImageView mErrorIndicator;
 
@@ -359,12 +359,15 @@ public class PageView extends ViewGroup {
                         }
                     }
 
-                    if (!mIsBlank && mLinks != null && mHighlightLinks) {
-                        paint.setColor(LINK_COLOR);
-                        for (Link link : mLinks)
-                            canvas.drawRect(link.getBounds().x0 * scale, link.getBounds().y0 * scale,
+                    if (!mIsBlank && mLinks != null) {
+                        paint.setColor(PageView.invertRender ? LINK_COLOR_DARK : LINK_COLOR_LIGHT);
+                        for (Link link : mLinks) {
+                            canvas.drawRect(
+                                    link.getBounds().x0 * scale, link.getBounds().y0 * scale,
                                     link.getBounds().x1 * scale, link.getBounds().y1 * scale,
-                                    paint);
+                                    paint
+                            );
+                        }
                     }
                 }
             };
@@ -376,12 +379,6 @@ public class PageView extends ViewGroup {
 
     public void setSearchBoxes(Quad[][] searchBoxes) {
         mSearchBoxes = searchBoxes;
-        if (mSearchView != null)
-            mSearchView.invalidate();
-    }
-
-    public void setLinkHighlighting(boolean f) {
-        mHighlightLinks = f;
         if (mSearchView != null)
             mSearchView.invalidate();
     }

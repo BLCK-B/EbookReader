@@ -23,7 +23,6 @@ import java.util.Stack;
 public class ReaderView
         extends AdapterView<Adapter>
         implements GestureDetector.OnGestureListener, ScaleGestureDetector.OnScaleGestureListener, Runnable {
-    private boolean mLinksEnabled = false;
     private boolean tapDisabled = false;
     private int tapPageMargin;
 
@@ -878,25 +877,19 @@ public class ReaderView
     protected void onDocMotion() {
     }
 
-    public void setLinksEnabled(boolean b) {
-        mLinksEnabled = b;
-        resetupChildren();
-        invalidate();
-    }
-
     public boolean onSingleTapUp(MotionEvent e) {
         // todo: links always
         if (!tapDisabled) {
             PageView pageView = (PageView) getDisplayedView();
-            if (mLinksEnabled && pageView != null) {
+            if (pageView != null) {
                 int page = pageView.hitLink(e.getX(), e.getY());
                 if (page > 0) {
                     pushHistory();
                     setDisplayedViewIndex(page);
-                } else {
-                    onTapMainDocArea();
+                    return true;
                 }
-            } else if (e.getX() < tapPageMargin) {
+            }
+            if (e.getX() < tapPageMargin) {
                 smartMoveBackwards();
             } else if (e.getX() > super.getWidth() - tapPageMargin) {
                 smartMoveForwards();
@@ -917,8 +910,6 @@ public class ReaderView
             ((PageView) v).setSearchBoxes(SearchTaskResult.get().searchBoxes);
         else
             ((PageView) v).setSearchBoxes(null);
-
-        ((PageView) v).setLinkHighlighting(mLinksEnabled);
     }
 
     protected void onMoveToChild(int i) {

@@ -60,7 +60,6 @@ public class DocumentActivity extends Activity {
     private ImageButton mSearchButton;
     private ImageButton mOutlineButton;
     private ViewAnimator mTopBarSwitcher;
-    private ImageButton mLinkButton;
     private TopBarMode mTopBarMode = TopBarMode.Main;
     private ImageButton mSearchBack;
     private ImageButton mSearchFwd;
@@ -68,7 +67,6 @@ public class DocumentActivity extends Activity {
     private EditText mSearchText;
     private SearchTask mSearchTask;
     private AlertDialog.Builder mAlertBuilder;
-    private boolean mLinkHighlight = false;
     private ArrayList<OutlineActivity.Item> mFlatOutline;
     private boolean mReturnToLibraryActivity = false;
 
@@ -248,7 +246,6 @@ public class DocumentActivity extends Activity {
         createUI(savedInstanceState);
         // my additions
         applySavedData();
-//        mDocView.setLinksEnabled(true);
     }
 
     public void persistData(int fontSize, int currentPage) {
@@ -436,8 +433,6 @@ public class DocumentActivity extends Activity {
         mSearchBack.setOnClickListener(v -> search(-1));
         mSearchFwd.setOnClickListener(v -> search(1));
 
-        mLinkButton.setOnClickListener(v -> setLinkHighlight(!mLinkHighlight));
-
         if (core.isReflowable()) {
             mLayoutButton.setVisibility(View.VISIBLE);
             mLayoutPopupMenu = new PopupMenu(this, mLayoutButton);
@@ -540,14 +535,6 @@ public class DocumentActivity extends Activity {
     private void setButtonEnabled(ImageButton button, boolean enabled) {
         button.setEnabled(enabled);
         button.setColorFilter(enabled ? Color.argb(255, 255, 255, 255) : Color.argb(255, 128, 128, 128));
-    }
-
-    private void setLinkHighlight(boolean highlight) {
-        mLinkHighlight = highlight;
-        // LINK_COLOR tint
-        mLinkButton.setColorFilter(highlight ? Color.argb(0xFF, 0x00, 0x66, 0xCC) : Color.argb(0xFF, 255, 255, 255));
-        // Inform pages of the change.
-        mDocView.setLinksEnabled(highlight);
     }
 
     private void showButtons() {
@@ -675,7 +662,6 @@ public class DocumentActivity extends Activity {
         mSearchFwd = mButtonsView.findViewById(R.id.searchForward);
         mSearchClose = mButtonsView.findViewById(R.id.searchClose);
         mSearchText = mButtonsView.findViewById(R.id.searchText);
-        mLinkButton = mButtonsView.findViewById(R.id.linkButton);
         mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
         themeButton = mButtonsView.findViewById(R.id.themeButton);
         mTopBarSwitcher.setVisibility(View.INVISIBLE);
