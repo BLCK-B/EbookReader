@@ -182,20 +182,20 @@ public class ReaderView
         // code.
 
         // screenWidth/Height are the actual width/height of the screen. e.g. 480/800
-        int screenWidth = getWidth();
-        int screenHeight = getHeight();
+        final int screenWidth = getWidth();
+        final int screenHeight = getHeight();
         // We might be mid scroll; we want to calculate where we scroll to based on
         // where this scroll would end, not where we are now (to allow for people
         // bashing 'forwards' very fast.
-        int remainingX = mScroller.getFinalX() - mScroller.getCurrX();
-        int remainingY = mScroller.getFinalY() - mScroller.getCurrY();
+        final int remainingX = mScroller.getFinalX() - mScroller.getCurrX();
+        final int remainingY = mScroller.getFinalY() - mScroller.getCurrY();
         // right/bottom is in terms of pixels within the scaled document; e.g. 1000
-        int top = -(v.getTop() + mYScroll + remainingY);
-        int right = screenWidth - (v.getLeft() + mXScroll + remainingX);
-        int bottom = screenHeight + top;
+        final int top = -(v.getTop() + mYScroll + remainingY);
+        final int right = screenWidth - (v.getLeft() + mXScroll + remainingX);
+        final int bottom = screenHeight + top;
         // docWidth/Height are the width/height of the scaled document e.g. 2000x3000
-        int docWidth = v.getMeasuredWidth();
-        int docHeight = v.getMeasuredHeight();
+        final int docWidth = v.getMeasuredWidth();
+        final int docHeight = v.getMeasuredHeight();
 
         int xOffset, yOffset;
         if (bottom >= docHeight) {
@@ -205,10 +205,10 @@ public class ReaderView
                 View nv = mChildViews.get(mCurrent + 1);
                 if (nv == null) // No page to advance to
                     return;
-                int nextTop = -(nv.getTop() + mYScroll + remainingY);
-                int nextLeft = -(nv.getLeft() + mXScroll + remainingX);
-                int nextDocWidth = nv.getMeasuredWidth();
-                int nextDocHeight = nv.getMeasuredHeight();
+                final int nextTop = -(nv.getTop() + mYScroll + remainingY);
+                final int nextLeft = -(nv.getLeft() + mXScroll + remainingX);
+                final int nextDocWidth = nv.getMeasuredWidth();
+                final int nextDocHeight = nv.getMeasuredHeight();
 
                 // Allow for the next page maybe being shorter than the screen is high
                 yOffset = (nextDocHeight < screenHeight ? ((nextDocHeight - screenHeight) >> 1) : 0);
@@ -236,7 +236,7 @@ public class ReaderView
             yOffset = smartAdvanceAmount(screenHeight, docHeight - bottom);
         }
         mScrollerLastX = mScrollerLastY = 0;
-        mScroller.startScroll(0, 0, remainingX - xOffset, remainingY - yOffset, 400);
+        mScroller.startScroll(0, 0, remainingX - xOffset, remainingY - yOffset, 0);
         mStepper.prod();
     }
 
@@ -308,7 +308,7 @@ public class ReaderView
             yOffset = -smartAdvanceAmount(screenHeight, top);
         }
         mScrollerLastX = mScrollerLastY = 0;
-        mScroller.startScroll(0, 0, remainingX - xOffset, remainingY - yOffset, 400);
+        mScroller.startScroll(0, 0, remainingX - xOffset, remainingY - yOffset, 0);
         mStepper.prod();
     }
 
@@ -375,8 +375,7 @@ public class ReaderView
         return true;
     }
 
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-                           float velocityY) {
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         if (mScaling)
             return true;
 
@@ -843,7 +842,7 @@ public class ReaderView
         Point corr = getCorrection(getScrollBounds(v));
         if (corr.x != 0 || corr.y != 0) {
             mScrollerLastX = mScrollerLastY = 0;
-            mScroller.startScroll(0, 0, corr.x, corr.y, 400);
+            mScroller.startScroll(0, 0, corr.x, corr.y, 350);
             mStepper.prod();
         }
     }
@@ -886,6 +885,7 @@ public class ReaderView
     }
 
     public boolean onSingleTapUp(MotionEvent e) {
+        // todo: links always
         if (!tapDisabled) {
             PageView pageView = (PageView) getDisplayedView();
             if (mLinksEnabled && pageView != null) {

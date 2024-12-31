@@ -248,6 +248,7 @@ public class DocumentActivity extends Activity {
         createUI(savedInstanceState);
         // my additions
         applySavedData();
+//        mDocView.setLinksEnabled(true);
     }
 
     public void persistData(int fontSize, int currentPage) {
@@ -329,11 +330,6 @@ public class DocumentActivity extends Activity {
                     if (mTopBarMode == TopBarMode.Main)
                         hideButtons();
                 }
-            }
-
-            @Override
-            protected void onDocMotion() {
-                hideButtons();
             }
 
             @Override

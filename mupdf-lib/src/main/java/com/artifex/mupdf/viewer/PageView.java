@@ -255,11 +255,6 @@ public class PageView extends ViewGroup {
     public void blank(int page) {
         reinit();
         mPageNumber = page;
-        if (mBusyIndicator == null) {
-            mBusyIndicator = new ProgressBar(mContext);
-            mBusyIndicator.setIndeterminate(true);
-            addView(mBusyIndicator);
-        }
         setBackgroundColor(BACKGROUND_COLOR);
     }
 
