@@ -80,8 +80,7 @@ public class DocumentActivity extends Activity {
     protected PopupMenu mLayoutPopupMenu;
 
     private int displayedPage = 0;
-
-    private SeekBar contrastSeekBar;
+    
     private ImageButton themeButton;
 
     private MuPDFCore openBuffer(byte[] buffer, String magic) {
