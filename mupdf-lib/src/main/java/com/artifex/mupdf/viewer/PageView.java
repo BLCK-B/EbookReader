@@ -62,7 +62,7 @@ public class PageView extends ViewGroup {
     protected final Context mContext;
 
     protected int mPageNumber;
-    private Point mParentSize;
+    private final Point mParentSize;
     protected Point pageSizeAtMinZoom;   // Size of page at minimum zoom
     protected float mSourceScale;
 
@@ -85,6 +85,7 @@ public class PageView extends ViewGroup {
     private ProgressBar mBusyIndicator;
     private final Handler mHandler = new Handler();
     private static boolean invertRender = false;
+    private static final ColorMatrix invertedMatrix = new ColorMatrix();
 
     public static void toggleInvertRender() {
         invertRender = !invertRender;
@@ -107,6 +108,13 @@ public class PageView extends ViewGroup {
         mEntireBm = Bitmap.createBitmap(parentSize.x, parentSize.y, Config.ARGB_8888);
         mPatchBm = sharedHqBm;
         mEntireMat = new Matrix();
+
+        invertedMatrix.set(new float[]{
+                -1.0f, 0.0f, 0.0f, 0.0f, 255.0f,
+                0.0f, -1.0f, 0.0f, 0.0f, 255.0f,
+                0.0f, 0.0f, -1.0f, 0.0f, 255.0f,
+                0.0f, 0.0f, 0.0f, 1.0f, 0.0f
+        });
     }
 
     private void renderPageInBackgroundEntire() {
@@ -179,28 +187,14 @@ public class PageView extends ViewGroup {
     }
 
     private Bitmap invert(Bitmap src) {
-        int height = src.getHeight();
-        int width = src.getWidth();
-
-        Bitmap bitmap = Bitmap.createBitmap(width, height, src.getConfig());
+        Bitmap bitmap = Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
         Canvas canvas = new Canvas(bitmap);
+
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(invertedMatrix);
         Paint paint = new Paint();
-
-        ColorMatrix matrixGrayscale = new ColorMatrix();
-
-        ColorMatrix matrixInvert = new ColorMatrix();
-        matrixInvert.set(new float[]{
-                -1.0f, 0.0f, 0.0f, 0.0f, 255.0f,
-                0.0f, -1.0f, 0.0f, 0.0f, 255.0f,
-                0.0f, 0.0f, -1.0f, 0.0f, 255.0f,
-                0.0f, 0.0f, 0.0f, 1.0f, 0.0f
-        });
-        matrixInvert.preConcat(matrixGrayscale);
-
-        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrixInvert);
         paint.setColorFilter(filter);
-
         canvas.drawBitmap(src, 0, 0, paint);
+
         return bitmap;
     }
 
