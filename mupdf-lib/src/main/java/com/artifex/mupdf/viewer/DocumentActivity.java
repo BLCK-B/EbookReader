@@ -53,7 +53,6 @@ public class DocumentActivity extends Activity {
     private ReaderView mDocView;
     private View mButtonsView;
     private boolean mButtonsVisible;
-    private TextView mDocNameView;
     private int mPageSliderRes;
     private TextView mPageNumberView;
     private ImageButton mSearchButton;
@@ -85,7 +84,6 @@ public class DocumentActivity extends Activity {
 
     private void makeButtonsView() {
         mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
-        mDocNameView = mButtonsView.findViewById(R.id.docNameText);
         mPageSlider = mButtonsView.findViewById(R.id.pageSlider);
         mPageNumberView = mButtonsView.findViewById(R.id.pageNumber);
         mSearchButton = mButtonsView.findViewById(R.id.searchButton);
@@ -379,13 +377,6 @@ public class DocumentActivity extends Activity {
         // Set up the page slider
         int smax = Math.max(core.countPages() - 1, 1);
         mPageSliderRes = ((10 + smax - 1) / smax) * 2;
-
-        // Set the file-name text
-        String docTitle = core.getTitle();
-        if (docTitle != null)
-            mDocNameView.setText(docTitle);
-        else
-            mDocNameView.setText(mDocTitle);
 
         // Activate the seekbar
         mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
