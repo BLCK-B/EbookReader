@@ -21,8 +21,8 @@ import android.view.Menu;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -54,12 +54,12 @@ public class DocumentActivity extends Activity {
     private View mButtonsView;
     private boolean mButtonsVisible;
     private TextView mDocNameView;
-    private SeekBar mPageSlider;
     private int mPageSliderRes;
     private TextView mPageNumberView;
     private ImageButton mSearchButton;
     private ImageButton mOutlineButton;
     private ViewAnimator mTopBarSwitcher;
+    private SeekBar mPageSlider;
     private TopBarMode mTopBarMode = TopBarMode.Main;
     private ImageButton mSearchBack;
     private ImageButton mSearchFwd;
@@ -80,8 +80,27 @@ public class DocumentActivity extends Activity {
     protected PopupMenu mLayoutPopupMenu;
 
     private int displayedPage = 0;
-    
+
     private ImageButton themeButton;
+
+    private void makeButtonsView() {
+        mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
+        mDocNameView = mButtonsView.findViewById(R.id.docNameText);
+        mPageSlider = mButtonsView.findViewById(R.id.pageSlider);
+        mPageNumberView = mButtonsView.findViewById(R.id.pageNumber);
+        mSearchButton = mButtonsView.findViewById(R.id.searchButton);
+        mOutlineButton = mButtonsView.findViewById(R.id.outlineButton);
+        mTopBarSwitcher = mButtonsView.findViewById(R.id.switcher);
+        mSearchBack = mButtonsView.findViewById(R.id.searchBack);
+        mSearchFwd = mButtonsView.findViewById(R.id.searchForward);
+        mSearchClose = mButtonsView.findViewById(R.id.searchClose);
+        mSearchText = mButtonsView.findViewById(R.id.searchText);
+        mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
+        themeButton = mButtonsView.findViewById(R.id.themeButton);
+        mTopBarSwitcher.setVisibility(View.INVISIBLE);
+        mPageNumberView.setVisibility(View.INVISIBLE);
+        mPageSlider.setVisibility(View.INVISIBLE);
+    }
 
     private MuPDFCore openBuffer(byte[] buffer, String magic) {
         try {
@@ -550,11 +569,13 @@ public class DocumentActivity extends Activity {
                 mSearchText.requestFocus();
                 showKeyboard();
             }
-            Animation anim = new TranslateAnimation(0, 0, -mTopBarSwitcher.getHeight(), 0);
-            anim.setDuration(50);
+            Animation anim = new AlphaAnimation(0.f, 1.f);
+            anim.setDuration(90);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
                     mTopBarSwitcher.setVisibility(View.VISIBLE);
+                    mPageSlider.setVisibility(View.VISIBLE);
+                    mPageNumberView.setVisibility(View.VISIBLE);
                 }
 
                 public void onAnimationRepeat(Animation animation) {
@@ -564,21 +585,6 @@ public class DocumentActivity extends Activity {
                 }
             });
             mTopBarSwitcher.startAnimation(anim);
-
-            anim = new TranslateAnimation(0, 0, mPageSlider.getHeight(), 0);
-            anim.setDuration(50);
-            anim.setAnimationListener(new Animation.AnimationListener() {
-                public void onAnimationStart(Animation animation) {
-                    mPageSlider.setVisibility(View.VISIBLE);
-                }
-
-                public void onAnimationRepeat(Animation animation) {
-                }
-
-                public void onAnimationEnd(Animation animation) {
-                    mPageNumberView.setVisibility(View.VISIBLE);
-                }
-            });
             mPageSlider.startAnimation(anim);
         }
     }
@@ -587,26 +593,12 @@ public class DocumentActivity extends Activity {
         if (mButtonsVisible) {
             mButtonsVisible = false;
             hideKeyboard();
-
-            Animation anim = new TranslateAnimation(0, 0, 0, -mTopBarSwitcher.getHeight());
-            anim.setDuration(50);
+            Animation anim = new AlphaAnimation(1.f, 0.f);
+            anim.setDuration(90);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
-                }
-
-                public void onAnimationRepeat(Animation animation) {
-                }
-
-                public void onAnimationEnd(Animation animation) {
                     mTopBarSwitcher.setVisibility(View.INVISIBLE);
-                }
-            });
-            mTopBarSwitcher.startAnimation(anim);
-
-            anim = new TranslateAnimation(0, 0, 0, mPageSlider.getHeight());
-            anim.setDuration(50);
-            anim.setAnimationListener(new Animation.AnimationListener() {
-                public void onAnimationStart(Animation animation) {
+                    mPageSlider.setVisibility(View.INVISIBLE);
                     mPageNumberView.setVisibility(View.INVISIBLE);
                 }
 
@@ -614,9 +606,10 @@ public class DocumentActivity extends Activity {
                 }
 
                 public void onAnimationEnd(Animation animation) {
-                    mPageSlider.setVisibility(View.INVISIBLE);
+
                 }
             });
+            mTopBarSwitcher.startAnimation(anim);
             mPageSlider.startAnimation(anim);
         }
     }
@@ -647,25 +640,6 @@ public class DocumentActivity extends Activity {
         if (core == null)
             return;
         mPageNumberView.setText(String.format(Locale.ROOT, "%d / %d", index + 1, core.countPages()));
-    }
-
-    private void makeButtonsView() {
-        mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
-        mDocNameView = mButtonsView.findViewById(R.id.docNameText);
-        mPageSlider = mButtonsView.findViewById(R.id.pageSlider);
-        mPageNumberView = mButtonsView.findViewById(R.id.pageNumber);
-        mSearchButton = mButtonsView.findViewById(R.id.searchButton);
-        mOutlineButton = mButtonsView.findViewById(R.id.outlineButton);
-        mTopBarSwitcher = mButtonsView.findViewById(R.id.switcher);
-        mSearchBack = mButtonsView.findViewById(R.id.searchBack);
-        mSearchFwd = mButtonsView.findViewById(R.id.searchForward);
-        mSearchClose = mButtonsView.findViewById(R.id.searchClose);
-        mSearchText = mButtonsView.findViewById(R.id.searchText);
-        mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
-        themeButton = mButtonsView.findViewById(R.id.themeButton);
-        mTopBarSwitcher.setVisibility(View.INVISIBLE);
-        mPageNumberView.setVisibility(View.INVISIBLE);
-        mPageSlider.setVisibility(View.INVISIBLE);
     }
 
     private void showKeyboard() {
