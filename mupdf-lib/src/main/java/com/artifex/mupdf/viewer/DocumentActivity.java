@@ -297,6 +297,10 @@ public class DocumentActivity extends Activity {
 
     public void updateLayoutInit() {
         core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
+        // for screen rotation
+        mDocView.mHistory.clear();
+        mDocView.refresh();
+
         mDocView.setDisplayedViewIndex(displayedPage);
     }
 
@@ -306,6 +310,7 @@ public class DocumentActivity extends Activity {
         core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
 
         mFlatOutline = null;
+        // for screen rotation
         mDocView.mHistory.clear();
         mDocView.refresh();
 
