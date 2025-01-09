@@ -1,6 +1,8 @@
 package com.example.reader;
 
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,6 +10,8 @@ import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.artifex.mupdf.viewer.DocumentActivity;
+
+import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,7 +21,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        openFilePicker();
+        String lastDoc = getLastOpenedDoc();
+        if (isUriValid(lastDoc)) {
+            startMuPDFActivity(Uri.parse(lastDoc));
+        } else {
+            openFilePicker();
+        }
     }
 
     private void openFilePicker() {
@@ -42,10 +51,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startMuPDFActivity(Uri documentUri) {
+        saveLastOpenedDoc(documentUri.toString());
         Intent intent = new Intent(this, DocumentActivity.class);
         intent.setAction(Intent.ACTION_VIEW);
         intent.setData(documentUri);
         startActivity(intent);
         finish();
+    }
+
+    public void saveLastOpenedDoc(String docName) {
+        SharedPreferences sharedPreferences = getSharedPreferences("lastDoc", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("lastDoc", docName);
+        editor.apply();
+    }
+
+    public String getLastOpenedDoc() {
+        SharedPreferences sharedPreferences = getSharedPreferences("lastDoc", MODE_PRIVATE);
+        return sharedPreferences.getString("lastDoc", "none");
+    }
+
+    public boolean isUriValid(String uri) {
+        Log.i("uri check", uri);
+        if (uri.equals("none"))
+            return false;
+
+        ContentResolver cr = getContentResolver();
+        try (InputStream is = cr.openInputStream(Uri.parse(uri))) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
