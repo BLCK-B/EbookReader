@@ -23,23 +23,6 @@
             </intent-filter>
         </activity>
 
-        <!-- MuPDF DocumentActivity for viewing PDFs -->
-        <activity
-            android:name="com.artifex.mupdf.viewer.DocumentActivity"
-            android:label="@string/app_name"
-            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|fontScale"
-            android:launchMode="singleTask"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            tools:replace="android:configChanges">
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:mimeType="application/pdf"/>
-            </intent-filter>
-        </activity>
-
     </application>
 
 </manifest>

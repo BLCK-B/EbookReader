@@ -81,6 +81,7 @@ public class DocumentActivity extends Activity {
     private int displayedPage = 0;
 
     private ImageButton themeButton;
+    private ImageButton exitButton;
 
     private void makeButtonsView() {
         mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
@@ -95,6 +96,7 @@ public class DocumentActivity extends Activity {
         mSearchText = mButtonsView.findViewById(R.id.searchText);
         mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
         themeButton = mButtonsView.findViewById(R.id.themeButton);
+        exitButton = mButtonsView.findViewById(R.id.selectBookButton);
         mTopBarSwitcher.setVisibility(View.INVISIBLE);
         mPageNumberView.setVisibility(View.INVISIBLE);
         mPageSlider.setVisibility(View.INVISIBLE);
@@ -497,6 +499,11 @@ public class DocumentActivity extends Activity {
         themeButton.setOnClickListener(b -> {
             PageView.toggleInvertRender();
             mDocView.refresh();
+        });
+        // select book button - finish activity and trigger onresume in MainActivity
+        exitButton.setOnClickListener(b -> {
+            persistData(mLayoutEM, mDocView.getDisplayedViewIndex());
+            finish();
         });
     }
 

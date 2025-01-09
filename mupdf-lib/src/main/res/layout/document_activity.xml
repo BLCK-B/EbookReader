@@ -28,6 +28,13 @@
                 android:gravity="center_horizontal">
 
                 <ImageButton
+                    android:id="@+id/selectBookButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button"
+                    android:src="@drawable/baseline_exit_to_app_24" />
+
+                <ImageButton
                     android:id="@+id/themeButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
