@@ -534,11 +534,6 @@ public class DocumentActivity extends Activity {
             outState.putBoolean("SearchMode", true);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
     public void onDestroy() {
         if (mDocView != null) {
             mDocView.applyToChildren(new ReaderView.ViewMapper() {
@@ -693,8 +688,13 @@ public class DocumentActivity extends Activity {
     }
 
     @Override
-    protected void onStop() {
+    protected void onPause() {
         persistData(mLayoutEM, mDocView.getDisplayedViewIndex());
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
         super.onStop();
     }
 

@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.artifex.mupdf.viewer.DocumentActivity;
@@ -15,10 +17,8 @@ import java.io.InputStream;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int PICK_DOCUMENT_REQUEST_CODE = 1001; // Unique request code
-
-    private boolean isInit = false;
-    private boolean isPickerOpen = false;
+    private static boolean isInit = false;
+    private ActivityResultLauncher<String[]> pickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,47 +27,36 @@ public class MainActivity extends AppCompatActivity {
             isInit = true;
         else
             return;
+        initPicker();
         Log.i("Oncreate", "");
 
         String lastDoc = getLastOpenedDoc();
         if (isUriValid(lastDoc)) {
             startMuPDFActivity(Uri.parse(lastDoc));
         } else {
-            openFilePicker();
+            pickerLauncher.launch(new String[]{"*/*"});
         }
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.i("Onresume", "");
-
-        if (!isPickerOpen)
-            openFilePicker();
-        isPickerOpen = true;
+        Log.i("onrestart", "");
+        saveLastOpenedDoc("none");
+        pickerLauncher.launch(new String[]{"*/*"});
     }
 
-    private void openFilePicker() {
-        Log.i("openfilepicker", "");
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");  // You can specify specific mime types (e.g., "application/pdf")
-        startActivityForResult(intent, PICK_DOCUMENT_REQUEST_CODE);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == RESULT_OK && requestCode == PICK_DOCUMENT_REQUEST_CODE) {
-            // The user selected a file
-            if (data != null) {
-                Uri documentUri = data.getData();
-                Log.i("MainActivity", "Selected document URI: " + documentUri.toString());
-                saveLastOpenedDoc(documentUri.toString());
-                startMuPDFActivity(documentUri);
-            }
-        }
+    private void initPicker() {
+        pickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.OpenDocument(),
+                result -> {
+                    if (result != null) {
+                        Log.i("MainActivity", "Selected document URI: " + result);
+                        saveLastOpenedDoc(result.toString());
+                        startMuPDFActivity(result);
+                    }
+                }
+        );
     }
 
     public void startMuPDFActivity(Uri documentUri) {
@@ -75,10 +64,11 @@ public class MainActivity extends AppCompatActivity {
         intent.setAction(Intent.ACTION_VIEW);
         intent.setData(documentUri);
         startActivity(intent);
-        isPickerOpen = false;
     }
 
     public void saveLastOpenedDoc(String docName) {
+        if (docName == null)
+            return;
         Log.i("savingdoc", docName);
         SharedPreferences sharedPreferences = getSharedPreferences("lastDoc", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -96,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         // doesnt exist, IOexception, permission exception = invalid
         ContentResolver cr = getContentResolver();
-        try (InputStream is = cr.openInputStream(Uri.parse(uri))) {
+        try (InputStream ignored = cr.openInputStream(Uri.parse(uri))) {
             return true;
         } catch (Exception e) {
             return false;
