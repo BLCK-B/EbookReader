@@ -878,7 +878,6 @@ public class ReaderView
     }
 
     public boolean onSingleTapUp(MotionEvent e) {
-        // todo: links always
         if (!tapDisabled) {
             PageView pageView = (PageView) getDisplayedView();
             if (pageView != null) {

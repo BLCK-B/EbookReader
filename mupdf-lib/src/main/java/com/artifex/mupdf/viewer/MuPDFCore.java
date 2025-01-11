@@ -142,6 +142,21 @@ public class MuPDFCore {
         doc = null;
     }
 
+    private static boolean invertRender = false;
+
+    public static void toggleInvertRender() {
+        invertRender = !invertRender;
+    }
+
+    public static void setInvert(boolean invert) {
+        invertRender = invert;
+    }
+
+    public static boolean getInvert() {
+        return invertRender;
+    }
+
+
     public synchronized void drawPage(Bitmap bm, int pageNum,
                                       int pageW, int pageH,
                                       int patchX, int patchY,
@@ -162,6 +177,7 @@ public class MuPDFCore {
         float zoom = (float) resolution / 72;
         Matrix ctm = new Matrix(zoom, zoom);
         RectI bbox = new RectI(page.getBounds().transform(ctm));
+
         float xscale = (float) pageW / (float) (bbox.x1 - bbox.x0);
         float yscale = (float) pageH / (float) (bbox.y1 - bbox.y0);
         ctm.scale(xscale, yscale);
@@ -169,6 +185,8 @@ public class MuPDFCore {
         AndroidDrawDevice dev = new AndroidDrawDevice(bm, patchX, patchY);
         try {
             displayList.run(dev, ctm, cookie);
+            if (invertRender)
+                dev.invertLuminance();
             dev.close();
         } finally {
             dev.destroy();

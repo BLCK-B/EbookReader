@@ -6,8 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -84,20 +82,6 @@ public class PageView extends ViewGroup {
 
     private ProgressBar mBusyIndicator;
     private final Handler mHandler = new Handler();
-    private static boolean invertRender = false;
-    private static final ColorMatrix invertedMatrix = new ColorMatrix();
-
-    public static void toggleInvertRender() {
-        invertRender = !invertRender;
-    }
-
-    public static void setInvert(boolean invert) {
-        invertRender = invert;
-    }
-
-    public static boolean getInvert() {
-        return invertRender;
-    }
 
     public PageView(Context c, MuPDFCore core, Point parentSize, Bitmap sharedHqBm) {
         super(c);
@@ -108,13 +92,6 @@ public class PageView extends ViewGroup {
         mEntireBm = Bitmap.createBitmap(parentSize.x, parentSize.y, Config.ARGB_8888);
         mPatchBm = sharedHqBm;
         mEntireMat = new Matrix();
-
-        invertedMatrix.set(new float[]{
-                -1.0f, 0.0f, 0.0f, 0.0f, 255.0f,
-                0.0f, -1.0f, 0.0f, 0.0f, 255.0f,
-                0.0f, 0.0f, -1.0f, 0.0f, 255.0f,
-                0.0f, 0.0f, 0.0f, 1.0f, 0.0f
-        });
     }
 
     private void renderPageInBackgroundEntire() {
@@ -149,7 +126,7 @@ public class PageView extends ViewGroup {
                 mBusyIndicator = null;
                 if (finalResult != null && finalResult) {
                     clearRenderError();
-                    imageAtMinZoom.setImageBitmap(invertRender ? invert(mEntireBm) : mEntireBm);
+                    imageAtMinZoom.setImageBitmap(mEntireBm);
                     imageAtMinZoom.invalidate();
                 } else {
                     setRenderError("Error rendering page");
@@ -176,7 +153,7 @@ public class PageView extends ViewGroup {
                     mPatchViewSize = patchViewSize;
                     mPatchArea = patchArea;
                     clearRenderError();
-                    mPatch.setImageBitmap(invertRender ? invert(mPatchBm) : mPatchBm);
+                    mPatch.setImageBitmap(mPatchBm);
                     mPatch.invalidate();
                     mPatch.layout(mPatchArea.left, mPatchArea.top, mPatchArea.right, mPatchArea.bottom);
                 } else {
@@ -184,18 +161,6 @@ public class PageView extends ViewGroup {
                 }
             });
         });
-    }
-
-    private Bitmap invert(Bitmap src) {
-        Bitmap bitmap = Bitmap.createBitmap(src.getWidth(), src.getHeight(), src.getConfig());
-        Canvas canvas = new Canvas(bitmap);
-
-        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(invertedMatrix);
-        Paint paint = new Paint();
-        paint.setColorFilter(filter);
-        canvas.drawBitmap(src, 0, 0, paint);
-
-        return bitmap;
     }
 
 
@@ -354,7 +319,7 @@ public class PageView extends ViewGroup {
                     }
 
                     if (!mIsBlank && mLinks != null) {
-                        paint.setColor(PageView.invertRender ? LINK_COLOR_DARK : LINK_COLOR_LIGHT);
+                        paint.setColor(MuPDFCore.getInvert() ? LINK_COLOR_DARK : LINK_COLOR_LIGHT);
                         for (Link link : mLinks) {
                             canvas.drawRect(
                                     link.getBounds().x0 * scale, link.getBounds().y0 * scale,
