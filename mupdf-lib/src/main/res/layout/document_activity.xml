@@ -42,18 +42,18 @@
                     android:src="@drawable/baseline_contrast_24" />
 
                 <ImageButton
-                    android:id="@+id/searchButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/button"
-                    android:src="@drawable/ic_search_white_24dp" />
-
-                <ImageButton
                     android:id="@+id/layoutButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/button"
                     android:src="@drawable/ic_format_size_white_24dp" />
+
+                <ImageButton
+                    android:id="@+id/searchButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button"
+                    android:src="@drawable/ic_search_white_24dp" />
 
                 <ImageButton
                     android:id="@+id/outlineButton"

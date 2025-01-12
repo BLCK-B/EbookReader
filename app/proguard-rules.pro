@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# keep the class and specified members from being removed or renamed
+-keep class com.artifex.mupdf.fitz.** { *; }

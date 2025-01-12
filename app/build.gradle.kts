@@ -19,9 +19,8 @@ android {
     buildTypes {
         release {
             isDebuggable = false
-            // issue with Context fitz JNI log
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

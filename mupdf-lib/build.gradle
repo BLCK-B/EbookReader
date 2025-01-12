@@ -1,81 +1,81 @@
 plugins {
-	id 'com.android.library'
-	id 'maven-publish'
+    id 'com.android.library'
+    id 'maven-publish'
 }
 
 group = 'com.artifex.mupdf'
 version = '1.25.2a'
 
 dependencies {
-	implementation 'androidx.appcompat:appcompat:1.7.0'
-	if (file('../jni/build.gradle').isFile()) {
-		implementation project(':jni')
-	} else {
-		implementation 'com.artifex.mupdf:fitz:1.25.2'
-	}
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    if (file('../jni/build.gradle').isFile()) {
+        implementation project(':jni')
+    } else {
+        implementation 'com.artifex.mupdf:fitz:1.25.2'
+    }
 }
 
 android {
-	namespace = 'com.artifex.mupdf.viewer'
-	compileSdk = 34
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_17
-		targetCompatibility JavaVersion.VERSION_17
-	}
-	defaultConfig {
-		minSdkVersion 26
-		targetSdkVersion 34
-	}
+    namespace = 'com.artifex.mupdf.viewer'
+    compileSdk = 34
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    defaultConfig {
+        minSdkVersion 26
+        targetSdkVersion 34
+    }
 
-	// Exclude the problematic core-for-system-modules.jar from being bundled
-	packagingOptions {
-		exclude 'core-for-system-modules.jar'
-	}
+    // Exclude the problematic core-for-system-modules.jar from being bundled
+    packagingOptions {
+        exclude 'core-for-system-modules.jar'
+    }
 
-	publishing {
-		singleVariant("release") {
-			withSourcesJar()
-		}
-	}
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 }
 
 afterEvaluate {
-	publishing {
-		publications {
-			release(MavenPublication) {
-				artifactId = 'viewer'
-				artifact(bundleReleaseAar)
+    publishing {
+        publications {
+            release(MavenPublication) {
+                artifactId = 'viewer'
+                artifact(bundleReleaseAar)
 
-				pom {
-					name = 'viewer'
-					url = 'http://www.mupdf.com'
-					licenses {
-						license {
-							name = 'GNU Affero General Public License'
-							url = 'https://www.gnu.org/licenses/agpl-3.0.html'
-						}
-					}
-				}
-				pom.withXml {
-					final dependenciesNode = asNode().appendNode('dependencies')
-					configurations.implementation.allDependencies.each {
-						def dependencyNode = dependenciesNode.appendNode('dependency')
-						dependencyNode.appendNode('groupId', it.group)
-						dependencyNode.appendNode('artifactId', it.name)
-						dependencyNode.appendNode('version', it.version)
-					}
-				}
-			}
-		}
-		repositories {
-			maven {
-				name = 'Local'
-				if (project.hasProperty('MAVEN_REPO')) {
-					url = MAVEN_REPO
-				} else {
-					url = "file://${System.properties['user.home']}/MAVEN"
-				}
-			}
-		}
-	}
+                pom {
+                    name = 'viewer'
+                    url = 'http://www.mupdf.com'
+                    licenses {
+                        license {
+                            name = 'GNU Affero General Public License'
+                            url = 'https://www.gnu.org/licenses/agpl-3.0.html'
+                        }
+                    }
+                }
+                pom.withXml {
+                    final dependenciesNode = asNode().appendNode('dependencies')
+                    configurations.implementation.allDependencies.each {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                name = 'Local'
+                if (project.hasProperty('MAVEN_REPO')) {
+                    url = MAVEN_REPO
+                } else {
+                    url = "file://${System.properties['user.home']}/MAVEN"
+                }
+            }
+        }
+    }
 }

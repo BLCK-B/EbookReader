@@ -841,7 +841,7 @@ public class ReaderView
         Point corr = getCorrection(getScrollBounds(v));
         if (corr.x != 0 || corr.y != 0) {
             mScrollerLastX = mScrollerLastY = 0;
-            mScroller.startScroll(0, 0, corr.x, corr.y, 350);
+            mScroller.startScroll(0, 0, corr.x, corr.y, 220);
             mStepper.prod();
         }
     }
