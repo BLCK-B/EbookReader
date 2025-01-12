@@ -2,4 +2,5 @@
 <resources>
     <color name="page_indicator">#000000</color>
     <color name="toolbar">#C1000000</color>
+    <color name="controls_background">#1c1c1c</color>
 </resources>

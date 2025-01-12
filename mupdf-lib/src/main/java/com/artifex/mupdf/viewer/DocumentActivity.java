@@ -268,27 +268,26 @@ public class DocumentActivity extends Activity {
         applySavedData();
     }
 
-    public void persistData(int fontSize, int currentPage) {
+    public void persistData() {
         final String bookId = mDocTitle.replace(" ", "");
-        Log.i(APP, "Book id " + bookId);
         SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("fontSize", fontSize);
-        editor.putInt("currentPage", currentPage);
-        editor.putInt("invertTheme", MuPDFCore.getInvert() ? 1 : 0);
+        editor.putInt("fontSize", mLayoutEM);
+        editor.putInt("currentPage", mDocView.getDisplayedViewIndex());
+        editor.putBoolean("invertTheme", MuPDFCore.getInvert());
+        editor.putBoolean("horizontalScroll", ReaderView.isHorizontalScrolling());
         editor.apply();
     }
 
     public void applySavedData() {
         final String bookId = mDocTitle.replace(" ", "");
         SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
-        int fontSize = sharedPreferences.getInt("fontSize", 9);
-        int pageNum = sharedPreferences.getInt("currentPage", 0);
-        boolean invertTheme = sharedPreferences.getInt("invertTheme", 0) == 1;
-        Log.i(APP, "Loading persistence " + fontSize + " " + pageNum);
-        setFontSize(fontSize);
-        setDisplayedPage(pageNum);
-        MuPDFCore.setInvert(invertTheme);
+
+        setFontSize(sharedPreferences.getInt("fontSize", 9));
+        setDisplayedPage(sharedPreferences.getInt("currentPage", 0));
+        MuPDFCore.setInvert(sharedPreferences.getBoolean("invertTheme", false));
+        ReaderView.setHorizontalScrolling(sharedPreferences.getBoolean("horizontalScroll", true));
+        directionButton.setRotation(ReaderView.isHorizontalScrolling() ? 0 : 90);
     }
 
     public void setFontSize(int fontSize) {
@@ -504,12 +503,12 @@ public class DocumentActivity extends Activity {
         });
         // select book button - finish activity and trigger onresume in MainActivity
         exitButton.setOnClickListener(b -> {
-            persistData(mLayoutEM, mDocView.getDisplayedViewIndex());
+            persistData();
             finish();
         });
         // swipe direction button
         directionButton.setOnClickListener(b -> {
-            ReaderView.toggleHorizontalScrolling();
+            ReaderView.setHorizontalScrolling(!ReaderView.isHorizontalScrolling());
             directionButton.setRotation(ReaderView.isHorizontalScrolling() ? 0 : 90);
         });
     }
@@ -696,7 +695,7 @@ public class DocumentActivity extends Activity {
 
     @Override
     protected void onPause() {
-        persistData(mLayoutEM, mDocView.getDisplayedViewIndex());
+        persistData();
         super.onPause();
     }
 

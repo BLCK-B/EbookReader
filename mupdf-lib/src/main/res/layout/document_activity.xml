@@ -8,7 +8,7 @@
     <RelativeLayout
         android:id="@+id/lowerButtons"
         android:layout_width="match_parent"
-        android:layout_height="75dp"
+        android:layout_height="78dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true">
 
@@ -17,14 +17,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true">
+            android:layout_centerHorizontal="true"
+            android:background="@color/controls_background">
 
             <LinearLayout
                 android:id="@+id/mainBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:background="@color/toolbar"
+                android:layout_marginBottom="1dp"
                 android:gravity="center_horizontal">
 
                 <ImageButton
@@ -35,18 +36,11 @@
                     android:src="@drawable/baseline_exit_to_app_24" />
 
                 <ImageButton
-                    android:id="@+id/themeButton"
+                    android:id="@+id/outlineButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/button"
-                    android:src="@drawable/baseline_contrast_24" />
-
-                <ImageButton
-                    android:id="@+id/layoutButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/button"
-                    android:src="@drawable/ic_format_size_white_24dp" />
+                    android:src="@drawable/baseline_format_list_numbered_24" />
 
                 <ImageButton
                     android:id="@+id/searchButton"
@@ -56,11 +50,18 @@
                     android:src="@drawable/ic_search_white_24dp" />
 
                 <ImageButton
-                    android:id="@+id/outlineButton"
+                    android:id="@+id/layoutButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/button"
-                    android:src="@drawable/baseline_format_list_numbered_24" />
+                    android:src="@drawable/ic_format_size_white_24dp" />
+
+                <ImageButton
+                    android:id="@+id/themeButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/button"
+                    android:src="@drawable/baseline_contrast_24" />
 
                 <ImageButton
                     android:id="@+id/directionButton"
@@ -122,15 +123,14 @@
         <SeekBar
             android:id="@+id/pageSlider"
             android:layout_width="match_parent"
-            android:layout_height="36dp"
+            android:layout_height="37dp"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_margin="0dp"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
-            android:paddingTop="12dp"
             android:paddingBottom="8dp"
-            android:background="@color/page_indicator"
+            android:background="@color/controls_background"
             android:thumb="@drawable/seek_thumb"
             android:progressDrawable="@drawable/seek_line" />
 
@@ -140,10 +140,10 @@
             android:layout_height="wrap_content"
             android:layout_above="@+id/pageSlider"
             android:layout_centerHorizontal="true"
-            android:layout_marginBottom="-32dp"
-            android:background="@drawable/page_indicator"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="35dp"
             android:textSize="16sp"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/darker_gray" />
 
     </RelativeLayout>
 

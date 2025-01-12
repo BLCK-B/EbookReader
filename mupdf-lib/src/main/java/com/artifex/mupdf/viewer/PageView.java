@@ -51,7 +51,7 @@ public class PageView extends ViewGroup {
     private final String APP = "MuPDF";
     private final MuPDFCore mCore;
 
-    private static final int HIGHLIGHT_COLOR = 0x80cc6600;
+    private static final int HIGHLIGHT_COLOR = 0x8040E0D0;
     private static final int LINK_COLOR_LIGHT = 0x1A0000FF;
     private static final int LINK_COLOR_DARK = 0x26FFFFFF;
     private static final int BACKGROUND_COLOR = 0xFFFFFFFF;
@@ -95,7 +95,7 @@ public class PageView extends ViewGroup {
     }
 
     private void renderPageInBackgroundEntire() {
-        setBackgroundColor(BACKGROUND_COLOR);
+        setBackgroundColor(MuPDFCore.getInvert() ? Color.BLACK : Color.WHITE);
         imageAtMinZoom.setImageBitmap(null);
         imageAtMinZoom.invalidate();
         if (mBusyIndicator == null) {

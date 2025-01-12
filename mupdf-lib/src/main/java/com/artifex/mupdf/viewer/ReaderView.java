@@ -66,8 +66,8 @@ public class ReaderView
         return horizontalScrolling;
     }
 
-    public static void toggleHorizontalScrolling() {
-        horizontalScrolling = !horizontalScrolling;
+    public static void setHorizontalScrolling(boolean isHorizontal) {
+        horizontalScrolling = isHorizontal;
     }
 
     static abstract class ViewMapper {
@@ -849,7 +849,7 @@ public class ReaderView
         Point corr = getCorrection(getScrollBounds(v));
         if (corr.x != 0 || corr.y != 0) {
             mScrollerLastX = mScrollerLastY = 0;
-            mScroller.startScroll(0, 0, corr.x, corr.y, 220);
+            mScroller.startScroll(0, 0, corr.x, corr.y, 160);
             mStepper.prod();
         }
     }
