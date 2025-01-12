@@ -82,6 +82,7 @@ public class DocumentActivity extends Activity {
 
     private ImageButton themeButton;
     private ImageButton exitButton;
+    private ImageButton directionButton;
 
     private void makeButtonsView() {
         mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
@@ -97,6 +98,7 @@ public class DocumentActivity extends Activity {
         mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
         themeButton = mButtonsView.findViewById(R.id.themeButton);
         exitButton = mButtonsView.findViewById(R.id.selectBookButton);
+        directionButton = mButtonsView.findViewById(R.id.directionButton);
         mTopBarSwitcher.setVisibility(View.INVISIBLE);
         mPageNumberView.setVisibility(View.INVISIBLE);
         mPageSlider.setVisibility(View.INVISIBLE);
@@ -504,6 +506,11 @@ public class DocumentActivity extends Activity {
         exitButton.setOnClickListener(b -> {
             persistData(mLayoutEM, mDocView.getDisplayedViewIndex());
             finish();
+        });
+        // swipe direction button
+        directionButton.setOnClickListener(b -> {
+            ReaderView.toggleHorizontalScrolling();
+            directionButton.setRotation(ReaderView.isHorizontalScrolling() ? 0 : 90);
         });
     }
 
