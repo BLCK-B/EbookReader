@@ -1,5 +1,8 @@
 package com.artifex.mupdf.viewer;
 
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
@@ -27,7 +30,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.PopupMenu;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -74,15 +77,16 @@ public class DocumentActivity extends Activity {
     private int mLayoutW = 312;
     private int mLayoutH = 504;
 
-    protected View mLayoutButton;
-
-    protected PopupMenu mLayoutPopupMenu;
+    protected View fontIncreaseButton;
+    protected View fontDecreaseButton;
 
     private int displayedPage = 0;
 
     private ImageButton themeButton;
     private ImageButton exitButton;
     private ImageButton directionButton;
+    private ImageButton infoButton;
+    private LinearLayout infoMenu;
 
     private void makeButtonsView() {
         mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
@@ -95,13 +99,16 @@ public class DocumentActivity extends Activity {
         mSearchFwd = mButtonsView.findViewById(R.id.searchForward);
         mSearchClose = mButtonsView.findViewById(R.id.searchClose);
         mSearchText = mButtonsView.findViewById(R.id.searchText);
-        mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
+        fontIncreaseButton = mButtonsView.findViewById(R.id.fontIncreaseButton);
+        fontDecreaseButton = mButtonsView.findViewById(R.id.fontDecreaseButton);
         themeButton = mButtonsView.findViewById(R.id.themeButton);
         exitButton = mButtonsView.findViewById(R.id.selectBookButton);
         directionButton = mButtonsView.findViewById(R.id.directionButton);
-        mTopBarSwitcher.setVisibility(View.INVISIBLE);
-        mPageNumberView.setVisibility(View.INVISIBLE);
-        mPageSlider.setVisibility(View.INVISIBLE);
+        infoButton = mButtonsView.findViewById(R.id.infoButton);
+        infoMenu = mButtonsView.findViewById(R.id.infoMenu);
+        mTopBarSwitcher.setVisibility(INVISIBLE);
+        mPageNumberView.setVisibility(INVISIBLE);
+        mPageSlider.setVisibility(INVISIBLE);
     }
 
     private MuPDFCore openBuffer(byte[] buffer, String magic) {
@@ -450,25 +457,6 @@ public class DocumentActivity extends Activity {
         mSearchBack.setOnClickListener(v -> search(-1));
         mSearchFwd.setOnClickListener(v -> search(1));
 
-        if (core.isReflowable()) {
-            mLayoutButton.setVisibility(View.VISIBLE);
-            mLayoutPopupMenu = new PopupMenu(this, mLayoutButton);
-            mLayoutPopupMenu.getMenuInflater().inflate(R.menu.layout_menu, mLayoutPopupMenu.getMenu());
-            mLayoutPopupMenu.setOnMenuItemClickListener(item -> {
-                int id = item.getItemId();
-                if (id == R.id.action_layout_8pt) mLayoutEM = 8;
-                else if (id == R.id.action_layout_9pt) mLayoutEM = 9;
-                else if (id == R.id.action_layout_10pt) mLayoutEM = 10;
-                else if (id == R.id.action_layout_11pt) mLayoutEM = 11;
-                else if (id == R.id.action_layout_12pt) mLayoutEM = 12;
-                else if (id == R.id.action_layout_13pt) mLayoutEM = 13;
-                else if (id == R.id.action_layout_14pt) mLayoutEM = 14;
-                updateLayoutFontChange();
-                return true;
-            });
-            mLayoutButton.setOnClickListener(v -> mLayoutPopupMenu.show());
-        }
-
         if (core.hasOutline()) {
             mOutlineButton.setOnClickListener(v -> {
                 if (mFlatOutline == null)
@@ -510,6 +498,27 @@ public class DocumentActivity extends Activity {
         directionButton.setOnClickListener(b -> {
             ReaderView.setHorizontalScrolling(!ReaderView.isHorizontalScrolling());
             directionButton.setRotation(ReaderView.isHorizontalScrolling() ? 0 : 90);
+        });
+        // font increase button
+        fontIncreaseButton.setOnClickListener(b -> {
+            if (mLayoutEM <= 16) {
+                ++mLayoutEM;
+                updateLayoutFontChange();
+            }
+        });
+        // font decrease button
+        fontDecreaseButton.setOnClickListener(b -> {
+            if (mLayoutEM >= 6) {
+                --mLayoutEM;
+                updateLayoutFontChange();
+            }
+        });
+        // info button
+        infoButton.setOnClickListener(b -> {
+            if (infoMenu.getVisibility() == INVISIBLE)
+                infoMenu.setVisibility(VISIBLE);
+            else
+                infoMenu.setVisibility(INVISIBLE);
         });
     }
 
@@ -577,9 +586,9 @@ public class DocumentActivity extends Activity {
             anim.setDuration(90);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
-                    mTopBarSwitcher.setVisibility(View.VISIBLE);
-                    mPageSlider.setVisibility(View.VISIBLE);
-                    mPageNumberView.setVisibility(View.VISIBLE);
+                    mTopBarSwitcher.setVisibility(VISIBLE);
+                    mPageSlider.setVisibility(VISIBLE);
+                    mPageNumberView.setVisibility(VISIBLE);
                 }
 
                 public void onAnimationRepeat(Animation animation) {
@@ -601,9 +610,9 @@ public class DocumentActivity extends Activity {
             anim.setDuration(90);
             anim.setAnimationListener(new Animation.AnimationListener() {
                 public void onAnimationStart(Animation animation) {
-                    mTopBarSwitcher.setVisibility(View.INVISIBLE);
-                    mPageSlider.setVisibility(View.INVISIBLE);
-                    mPageNumberView.setVisibility(View.INVISIBLE);
+                    mTopBarSwitcher.setVisibility(INVISIBLE);
+                    mPageSlider.setVisibility(INVISIBLE);
+                    mPageNumberView.setVisibility(INVISIBLE);
                 }
 
                 public void onAnimationRepeat(Animation animation) {
