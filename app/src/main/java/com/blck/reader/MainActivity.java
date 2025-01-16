@@ -34,7 +34,11 @@ public class MainActivity extends AppCompatActivity {
         if (isUriValid(lastDoc)) {
             startMuPDFActivity(Uri.parse(lastDoc));
         } else {
-            pickerLauncher.launch(new String[]{"*/*"});
+            pickerLauncher.launch(new String[]{
+                    "application/epub+zip",
+                    "application/pdf",
+                    "text/html",
+                    "application/octet-stream"});
         }
     }
 
@@ -43,7 +47,11 @@ public class MainActivity extends AppCompatActivity {
         super.onRestart();
         Log.i("onrestart", "");
         saveLastOpenedDoc("none");
-        pickerLauncher.launch(new String[]{"*/*"});
+        pickerLauncher.launch(new String[]{
+                "application/epub+zip",
+                "application/pdf",
+                "text/html",
+                "application/octet-stream"});
     }
 
     private void initPicker() {

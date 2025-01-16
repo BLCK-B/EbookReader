@@ -1,32 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-	<application>
-		<activity
-			android:name=".DocumentActivity"
-			android:configChanges="orientation|screenSize|keyboardHidden"
-			android:exported="true">
 
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<category android:name="android.intent.category.DEFAULT" />
+    <application>
+        <activity
+            android:name=".DocumentActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="true">
 
-				<data android:mimeType="application/pdf" />
-				<data android:mimeType="application/vnd.ms-xpsdocument" />
-				<data android:mimeType="application/oxps" />
-				<data android:mimeType="application/vnd.comicbook+zip" />
-				<data android:mimeType="application/x-cbz" />
-				<data android:mimeType="application/epub+zip" />
-				<data android:mimeType="application/x-fictionbook" />
-				<data android:mimeType="application/x-mobipocket-ebook" />
-				<data android:mimeType="application/octet-stream" />
-				<data android:scheme="file" />
-				<data android:scheme="content" />
-			</intent-filter>
-		</activity>
-		<activity
-			android:name=".OutlineActivity"
-			android:exported="true">
-		</activity>
-	</application>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="application/vnd.ms-xpsdocument" />
+                <data android:mimeType="application/oxps" />
+                <data android:mimeType="application/vnd.comicbook+zip" />
+                <data android:mimeType="application/x-cbz" />
+                <data android:mimeType="application/epub+zip" />
+                <data android:mimeType="application/x-fictionbook" />
+                <data android:mimeType="application/x-mobipocket-ebook" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".OutlineActivity"
+            android:exported="true"></activity>
+    </application>
 </manifest>
