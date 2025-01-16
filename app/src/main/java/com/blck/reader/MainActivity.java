@@ -1,4 +1,4 @@
-package com.example.reader;
+package com.blck.reader;
 
 import android.content.ContentResolver;
 import android.content.Intent;

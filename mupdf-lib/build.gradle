@@ -26,11 +26,13 @@ android {
         minSdkVersion 26
         targetSdkVersion 34
     }
+    packagingOptions {
+        resources {
+            excludes += ['core-for-system-modules.jar']
+        }
+    }
 
     // Exclude the problematic core-for-system-modules.jar from being bundled
-    packagingOptions {
-        exclude 'core-for-system-modules.jar'
-    }
 
     publishing {
         singleVariant("release") {

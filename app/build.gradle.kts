@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.reader"
+    namespace = "com.blck.reader"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.reader"
+        applicationId = "com.blck.reader"
         minSdk = 26
         targetSdk = 34
         versionCode = 2
