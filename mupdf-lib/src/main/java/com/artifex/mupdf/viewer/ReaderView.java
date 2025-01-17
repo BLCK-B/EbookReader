@@ -5,7 +5,6 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -129,7 +128,6 @@ public class ReaderView
     }
 
     public void setDisplayedViewIndex(int i) {
-        Log.i("setDisplayedViewIndex", "setDisplayedViewIndex " + i);
         if (0 <= i && i < mAdapter.getCount()) {
             onMoveOffChild(mCurrent);
             mCurrent = i;

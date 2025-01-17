@@ -28,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
         else
             return;
         initPicker();
-        Log.i("Oncreate", "");
 
         String lastDoc = getLastOpenedDoc();
         if (isUriValid(lastDoc)) {
@@ -45,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.i("onrestart", "");
         saveLastOpenedDoc("none");
         pickerLauncher.launch(new String[]{
                 "application/epub+zip",
@@ -77,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     public void saveLastOpenedDoc(String docName) {
         if (docName == null)
             return;
-        Log.i("savingdoc", docName);
         SharedPreferences sharedPreferences = getSharedPreferences("lastDoc", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("lastDoc", docName);
