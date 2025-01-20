@@ -22,8 +22,8 @@ public class MuPDFCore {
     private final int resolution;
     private Document doc;
     private Outline[] outline;
-    private int pageCount = -1;
-    private boolean reflowable = false;
+    private int pageCount;
+    private final boolean reflowable;
     private int currentPage;
     private Page page;
     private float pageWidth;

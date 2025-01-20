@@ -271,66 +271,8 @@ public class DocumentActivity extends Activity {
             return;
         }
         createUI(savedInstanceState);
-        // my additions
+
         applySavedData();
-    }
-
-    public void persistData() {
-        final String bookId = mDocTitle.replace(" ", "");
-        SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("fontSize", mLayoutEM);
-        editor.putInt("currentPage", mDocView.getDisplayedViewIndex());
-        editor.putBoolean("invertTheme", MuPDFCore.getInvert());
-        editor.putBoolean("horizontalScroll", ReaderView.isHorizontalScrolling());
-        editor.apply();
-    }
-
-    public void applySavedData() {
-        final String bookId = mDocTitle.replace(" ", "");
-        SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
-
-        setFontSize(sharedPreferences.getInt("fontSize", 9));
-        setDisplayedPage(sharedPreferences.getInt("currentPage", 0));
-        MuPDFCore.setInvert(sharedPreferences.getBoolean("invertTheme", false));
-        ReaderView.setHorizontalScrolling(sharedPreferences.getBoolean("horizontalScroll", true));
-        directionButton.setRotation(ReaderView.isHorizontalScrolling() ? 0 : 90);
-    }
-
-    public void setFontSize(int fontSize) {
-        mLayoutEM = fontSize;
-    }
-
-    public void setDisplayedPage(int page) {
-        displayedPage = page;
-    }
-
-    public void updateLayoutInit() {
-        core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
-        // for screen rotation
-        mDocView.mHistory.clear();
-        mDocView.refresh();
-
-        mDocView.setDisplayedViewIndex(displayedPage);
-    }
-
-    public void updateLayoutFontChange() {
-        displayedPage = mDocView.getDisplayedViewIndex();
-        final float oldProgress = (float) displayedPage / core.countPages();
-        core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
-
-        mFlatOutline = null;
-        // for screen rotation
-        mDocView.mHistory.clear();
-        mDocView.refresh();
-
-        // update page count indicator
-        updatePageNumView(displayedPage);
-        // update slider
-        mPageSlider.setMax((core.countPages() - 1) * mPageSliderRes);
-
-        final int pageAdjustedForProgress = Math.round(oldProgress * core.countPages());
-        mDocView.setDisplayedViewIndex(pageAdjustedForProgress);
     }
 
     public void createUI(Bundle savedInstanceState) {
@@ -520,6 +462,64 @@ public class DocumentActivity extends Activity {
             else
                 infoMenu.setVisibility(INVISIBLE);
         });
+    }
+
+    public void persistData() {
+        final String bookId = mDocTitle.replace(" ", "");
+        SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt("fontSize", mLayoutEM);
+        editor.putInt("currentPage", mDocView.getDisplayedViewIndex());
+        editor.putBoolean("invertTheme", MuPDFCore.getInvert());
+        editor.putBoolean("horizontalScroll", ReaderView.isHorizontalScrolling());
+        editor.apply();
+    }
+
+    public void applySavedData() {
+        final String bookId = mDocTitle.replace(" ", "");
+        SharedPreferences sharedPreferences = getSharedPreferences(bookId, MODE_PRIVATE);
+
+        setFontSize(sharedPreferences.getInt("fontSize", 9));
+        setDisplayedPage(sharedPreferences.getInt("currentPage", 0));
+        MuPDFCore.setInvert(sharedPreferences.getBoolean("invertTheme", false));
+        ReaderView.setHorizontalScrolling(sharedPreferences.getBoolean("horizontalScroll", true));
+        directionButton.setRotation(ReaderView.isHorizontalScrolling() ? 0 : 90);
+    }
+
+    public void setFontSize(int fontSize) {
+        mLayoutEM = fontSize;
+    }
+
+    public void setDisplayedPage(int page) {
+        displayedPage = page;
+    }
+
+    public void updateLayoutInit() {
+        core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
+        // for screen rotation
+        mDocView.mHistory.clear();
+        mDocView.refresh();
+
+        mDocView.setDisplayedViewIndex(displayedPage);
+    }
+
+    public void updateLayoutFontChange() {
+        displayedPage = mDocView.getDisplayedViewIndex();
+        final float oldProgress = (float) displayedPage / core.countPages();
+        core.updateLayout(mLayoutW, mLayoutH, mLayoutEM);
+
+        mFlatOutline = null;
+        // for screen rotation
+        mDocView.mHistory.clear();
+        mDocView.refresh();
+
+        // update page count indicator
+        updatePageNumView(displayedPage);
+        // update slider
+        mPageSlider.setMax((core.countPages() - 1) * mPageSliderRes);
+
+        final int pageAdjustedForProgress = Math.round(oldProgress * core.countPages());
+        mDocView.setDisplayedViewIndex(pageAdjustedForProgress);
     }
 
     @Override
@@ -715,7 +715,7 @@ public class DocumentActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (mDocView == null || (mDocView != null && !mDocView.popHistory())) {
+        if (mDocView == null || !mDocView.popHistory()) {
             super.onBackPressed();
             if (mReturnToLibraryActivity) {
                 Intent intent = getPackageManager().getLaunchIntentForPackage(getComponentName().getPackageName());

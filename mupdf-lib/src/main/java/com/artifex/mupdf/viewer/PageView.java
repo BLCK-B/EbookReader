@@ -48,7 +48,6 @@ class OpaqueImageView extends AppCompatImageView {
 }
 
 public class PageView extends ViewGroup {
-    private final String APP = "MuPDF";
     private final MuPDFCore mCore;
 
     private static final int HIGHLIGHT_COLOR = 0x8040E0D0;
@@ -96,8 +95,11 @@ public class PageView extends ViewGroup {
 
     private void renderPageInBackgroundEntire() {
         setBackgroundColor(MuPDFCore.getInvert() ? Color.BLACK : Color.WHITE);
-        imageAtMinZoom.setImageBitmap(null);
-        imageAtMinZoom.invalidate();
+        if (imageAtMinZoom != null) {
+            imageAtMinZoom.setImageBitmap(null);
+            imageAtMinZoom.invalidate();
+        }
+
         if (mBusyIndicator == null) {
             mBusyIndicator = new ProgressBar(mContext);
             mBusyIndicator.setIndeterminate(true);
@@ -109,6 +111,7 @@ public class PageView extends ViewGroup {
                 }
             }, PROGRESS_DIALOG_DELAY);
         }
+
         CancellableTaskDefinition<Void, Boolean> task = getDrawPageTask(mEntireBm, pageSizeAtMinZoom.x, pageSizeAtMinZoom.y, 0, 0, pageSizeAtMinZoom.x, pageSizeAtMinZoom.y);
         // execute rendering task in the background
         executorService.execute(() -> {
@@ -129,7 +132,7 @@ public class PageView extends ViewGroup {
                     imageAtMinZoom.setImageBitmap(mEntireBm);
                     imageAtMinZoom.invalidate();
                 } else {
-                    setRenderError("Error rendering page");
+                    setRenderError();
                 }
                 setBackgroundColor(Color.TRANSPARENT);
             });
@@ -157,7 +160,7 @@ public class PageView extends ViewGroup {
                     mPatch.invalidate();
                     mPatch.layout(mPatchArea.left, mPatchArea.top, mPatchArea.right, mPatchArea.bottom);
                 } else {
-                    setRenderError("Error rendering patch");
+                    setRenderError();
                 }
             });
         });
@@ -225,7 +228,7 @@ public class PageView extends ViewGroup {
         invalidate();
     }
 
-    protected void setRenderError(String why) {
+    protected void setRenderError() {
         int page = mPageNumber;
         reinit();
         mPageNumber = page;
@@ -258,15 +261,14 @@ public class PageView extends ViewGroup {
         mPageNumber = page;
 
         if (size == null) {
-            setRenderError("Error loading page");
+            setRenderError();
             size = new PointF(612, 792);
         }
 
         // Calculate scaled size that fits within the screen limits
         // This is the size at minimum zoom
         mSourceScale = Math.min(mParentSize.x / size.x, mParentSize.y / size.y);
-        Point newSize = new Point((int) (size.x * mSourceScale), (int) (size.y * mSourceScale));
-        pageSizeAtMinZoom = newSize;
+        pageSizeAtMinZoom = new Point((int) (size.x * mSourceScale), (int) (size.y * mSourceScale));
 
         if (mErrorIndicator != null)
             return;
@@ -277,8 +279,10 @@ public class PageView extends ViewGroup {
             addView(imageAtMinZoom);
         }
 
-        imageAtMinZoom.setImageBitmap(null);
-        imageAtMinZoom.invalidate();
+        if (imageAtMinZoom != null) {
+            imageAtMinZoom.setImageBitmap(null);
+            imageAtMinZoom.invalidate();
+        }
 
         Handler handler = new Handler(Looper.getMainLooper());
         executorService.execute(() -> {
@@ -498,10 +502,10 @@ public class PageView extends ViewGroup {
             try {
                 mContext.startActivity(intent);
             } catch (FileUriExposedException x) {
-                Log.e(APP, x.toString());
+                Log.e("MuPDF", x.toString());
                 Toast.makeText(getContext(), "Android does not allow following file:// link: " + link.getURI(), Toast.LENGTH_LONG).show();
             } catch (Throwable x) {
-                Log.e(APP, x.toString());
+                Log.e("MuPDF", x.toString());
                 Toast.makeText(getContext(), x.getMessage(), Toast.LENGTH_LONG).show();
             }
             return 0;
