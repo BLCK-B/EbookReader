@@ -154,26 +154,12 @@
     </LinearLayout>
 
     <TextView
-        android:layout_marginTop="40dp"
-        android:textColor="#FFFFFF"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="I hope you find this app helpful. Please consider giving it a rating."
-        android:textSize="14sp"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp" />
-
-    <ImageView
-        android:layout_width="34dp"
-        android:layout_height="34dp"
-        android:layout_marginEnd="8dp" />
-
-    <TextView
+        android:layout_marginTop="20dp"
         android:textColor="#FFFFFF"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Made by BLCK. Distributed under the GNU Affero General Public License.
-    \nLicense and source code are available at:\nhttps://github.com/BLCK-B/EbookReader \n"
+    \nBug tracker and source code are available at:\nhttps://github.com/BLCK-B/EbookReader \n"
         android:textSize="14sp"
         android:autoLink="web"
         android:textColorLink="#209fae" />
