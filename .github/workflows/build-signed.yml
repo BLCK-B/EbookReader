@@ -33,13 +33,15 @@ jobs:
         run: |
           echo $ENCODED_STRING | base64 -d > keystore.jks
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
       - name: Build Release apk and bundle
         env:
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           RELEASE_KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
-          chmod +x ./gradlew
           ./gradlew assembleRelease --stacktrace
           ./gradlew bundleRelease --stacktrace
 
