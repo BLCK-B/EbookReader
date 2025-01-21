@@ -39,6 +39,7 @@ jobs:
           RELEASE_KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
+          chmod +x ./gradlew
           ./gradlew assembleRelease --stacktrace
           ./gradlew bundleRelease --stacktrace
 
