@@ -2,20 +2,21 @@ name: Build signed APK
 on:
   workflow_dispatch:
     inputs:
-      name:
-        description: "Release-Build"
-        default: "Generate release build"
+      make-draft:
+        description: "Make draft release? yes/no"
+        required: true
+        default: "yes"
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checking out branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
@@ -29,30 +30,43 @@ jobs:
           ENCODED_STRING: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-        run: |
-          echo $ENCODED_STRING | base64 -d > keystore.jks
+        run: echo $ENCODED_STRING | base64 -d > keystore.jks
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Build Release apk and bundle
+      - name: Build Release apk
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-        run: |
-          ./gradlew assembleRelease --stacktrace
-          ./gradlew bundleRelease --stacktrace
+        run: ./gradlew assembleRelease --stacktrace
 
       - name: File paths to variables
         id: releaseFiles
-        run: |
-          echo "aabfile=$(find app/build/outputs/bundle/release/*.aab)" >> $GITHUB_OUTPUT
-          echo "apkfile=$(find app/build/outputs/apk/release/*.apk)" >> $GITHUB_OUTPUT
+        run: echo "apkfile=$(find app/build/outputs/apk/release/*.apk)" >> $GITHUB_OUTPUT
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-           name: release-artifacts
-           path: |
-             ${{ steps.releaseFiles.outputs.apkfile }}
-             ${{ steps.releaseFiles.outputs.aabfile }}
+           name: apk-file
+           path: ${{ steps.releaseFiles.outputs.apkfile }}
+           if-no-files-found: error
+
+  draft-release:
+    needs: build-apk
+    runs-on: ubuntu-latest
+    if: ${{ inputs.make-draft == 'yes' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded
+          pattern: "*-file"
+          merge-multiple: true
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: downloaded/**
+          name: Draft release
+          draft: true
