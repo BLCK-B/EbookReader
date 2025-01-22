@@ -9,6 +9,12 @@ Android app for reading EPUB, MOBI, PDF and other ebook formats.
 </p>
 
 <p align="center">
+  <a href="https://github.com/BLCK-B/EbookReader/releases/latest">
+    <img src="https://img.shields.io/github/v/release/BLCK-B/EbookReader?label=Download%20Latest%20Release" alt="Download Latest Release">
+  </a>
+</p>
+
+<p align="center">
 <img src="https://github.com/user-attachments/assets/1dde3f7b-63eb-4e6a-bc24-2ce25959d72f" width="160px"/>  
 
 <img src="https://github.com/user-attachments/assets/10489b33-6ccc-43d0-a22d-40016db6bf7d" width="160px"/>  
