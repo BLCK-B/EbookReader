@@ -28,6 +28,10 @@ Android app for reading EPUB, MOBI, PDF and other ebook formats.
 - Chapter list, text search, page slider for quick navigation
 - Battery-friendly, fully offline
 
+### Note
+
+It is basically my version of MuPDF. More in-depth things are not possible due to JNI and legacy code. I use the app every day and ensure it works on new android - it is *not* abandoned. In the future, I would like to use Readium, if only I had the time for it.
+
 ##
 
 ### License
