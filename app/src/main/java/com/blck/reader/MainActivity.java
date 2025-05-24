@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
         String lastDoc = getLastOpenedDoc();
         if (isUriValid(lastDoc)) {
+            // reopen last book, skip file picker
             startMuPDFActivity(Uri.parse(lastDoc));
         } else {
             pickerLauncher.launch(new String[]{
@@ -58,6 +59,10 @@ public class MainActivity extends AppCompatActivity {
                 result -> {
                     if (result != null) {
                         Log.i("MainActivity", "Selected document URI: " + result);
+                        // persist access on restarts - scoped storage
+                        getContentResolver().takePersistableUriPermission(
+                                result, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        );
                         saveLastOpenedDoc(result.toString());
                         startMuPDFActivity(result);
                     }

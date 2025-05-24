@@ -22,8 +22,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.inputmethod.EditorInfo;
@@ -35,6 +33,12 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ViewAnimator;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.artifex.mupdf.fitz.SeekableInputStream;
 
@@ -186,8 +190,10 @@ public class DocumentActivity extends Activity {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+        insetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        insetsController.show(WindowInsetsCompat.Type.systemBars());
 
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -424,6 +430,13 @@ public class DocumentActivity extends Activity {
         layout.setBackgroundColor(Color.DKGRAY);
         layout.addView(mDocView);
         layout.addView(mButtonsView);
+        // status bar, navigation bar padding
+        ViewCompat.setOnApplyWindowInsetsListener(layout, (v, insets) -> {
+            Insets systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemInsets.left, systemInsets.top, systemInsets.right, systemInsets.bottom);
+            return insets;
+        });
+
         setContentView(layout);
 
         // theme button
