@@ -427,7 +427,7 @@ public class DocumentActivity extends Activity {
             searchModeOn();
         // Stick the document view and the buttons overlay into a parent view
         RelativeLayout layout = new RelativeLayout(this);
-        layout.setBackgroundColor(Color.DKGRAY);
+        layout.setBackgroundColor(Color.BLACK);
         layout.addView(mDocView);
         layout.addView(mButtonsView);
         // status bar, navigation bar padding
