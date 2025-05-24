@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "com.blck.reader"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.blck.reader"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 3
         versionName = "1.2.0"
 
