@@ -421,10 +421,12 @@ public class DocumentActivity extends Activity {
         } else {
             mOutlineButton.setVisibility(View.GONE);
         }
-        if (savedInstanceState == null || !savedInstanceState.getBoolean("ButtonsHidden", false))
+        if (savedInstanceState == null || !savedInstanceState.getBoolean("ButtonsHidden", false)) {
             showButtons();
-        if (savedInstanceState != null && savedInstanceState.getBoolean("SearchMode", false))
+        }
+        if (savedInstanceState != null && savedInstanceState.getBoolean("SearchMode", false)) {
             searchModeOn();
+        }
         // Stick the document view and the buttons overlay into a parent view
         RelativeLayout layout = new RelativeLayout(this);
         layout.setBackgroundColor(Color.BLACK);

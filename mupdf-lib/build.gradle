@@ -7,24 +7,23 @@ group = 'com.artifex.mupdf'
 version = '1.25.2a'
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     if (file('../jni/build.gradle').isFile()) {
         implementation project(':jni')
     } else {
-        implementation 'com.artifex.mupdf:fitz:1.25.2'
+        implementation 'com.artifex.mupdf:fitz:1.27.1'
     }
 }
 
 android {
     namespace = 'com.artifex.mupdf.viewer'
-    compileSdk = 35
+    compileSdk = 36
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
     defaultConfig {
         minSdkVersion 26
-        targetSdkVersion 34
     }
     packagingOptions {
         resources {
@@ -38,6 +37,12 @@ android {
         singleVariant("release") {
             withSourcesJar()
         }
+    }
+    lint {
+        targetSdk 34
+    }
+    testOptions {
+        targetSdk 34
     }
 }
 

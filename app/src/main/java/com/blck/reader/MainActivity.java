@@ -78,8 +78,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void saveLastOpenedDoc(String docName) {
-        if (docName == null)
-            return;
+        if (docName == null) return;
         SharedPreferences sharedPreferences = getSharedPreferences("lastDoc", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("lastDoc", docName);
