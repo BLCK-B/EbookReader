@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: 17
+          java-version: 21
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -48,9 +48,9 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-           name: apk-file
-           path: ${{ steps.releaseFiles.outputs.apkfile }}
-           if-no-files-found: error
+          name: apk-file
+          path: ${{ steps.releaseFiles.outputs.apkfile }}
+          if-no-files-found: error
 
   draft-release:
     needs: build-apk
